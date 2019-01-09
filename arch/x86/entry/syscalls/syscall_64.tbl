@@ -343,7 +343,8 @@
 424	common	pidfd_send_signal	sys_pidfd_send_signal
 425	common	io_uring_setup		sys_io_uring_setup
 426	common	io_uring_enter		sys_io_uring_enter
-434	common	pidfd_open			sys_pidfd_open
+427	common	io_uring_register	sys_io_uring_register
+434	common	pidfd_open		sys_pidfd_open
 =======
 237	common	mbind			__x64_sys_mbind
 238	common	set_mempolicy		__x64_sys_set_mempolicy
@@ -445,7 +446,11 @@
 334	common	rseq			__x64_sys_rseq
 425	common	io_uring_setup		__x64_sys_io_uring_setup
 426	common	io_uring_enter		__x64_sys_io_uring_enter
+<<<<<<< HEAD
 >>>>>>> 2b188cc1bb857 (Add io_uring IO interface)
+=======
+427	common	io_uring_register	__x64_sys_io_uring_register
+>>>>>>> edafccee56ff3 (io_uring: add support for pre-mapped user IO buffers)
 
 #
 # x32-specific system call numbers start at 512 to avoid cache impact
