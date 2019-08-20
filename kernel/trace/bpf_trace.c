@@ -163,6 +163,7 @@ bpf_probe_read_user_common(void *dst, u32 size, const void __user *unsafe_ptr)
 	if (unlikely(ret < 0))
 out:
 		memset(dst, 0, size);
+
 	return ret;
 }
 
@@ -1076,10 +1077,85 @@ static const struct bpf_func_proto bpf_current_task_under_cgroup_proto = {
 };
 
 struct send_signal_irq_work {
-	struct irq_work irq_work;
-	struct task_struct *task;
-	u32 sig;
-	enum pid_type type;
+
+        struct irq_work irq_work;
+
+        struct task_struct *task;
+
+        u32 sig;
+
+        enum pid_type type;
+
+};
+
+
+
+BPF_CALL_3(bpf_probe_read_str, void *, dst, u32, size,
+
+           const void *, unsafe_ptr)
+
+{
+
+        int ret;
+
+
+
+        ret = security_locked_down(LOCKDOWN_BPF_READ);
+
+        if (ret < 0)
+
+                goto out;
+
+
+
+        /*
+
+         * The strncpy_from_unsafe() call will likely not fill the entire
+
+         * buffer, but that's okay in this circumstance as we're probing
+
+         * arbitrary memory anyway similar to bpf_probe_read() and might
+
+         * as well probe the stack. Thus, memory is explicitly cleared
+
+         * only in error case, so that improper users ignoring return
+
+         * code altogether don't copy garbage; otherwise length of string
+
+         * is returned that can be used for bpf_perf_event_output() et al.
+
+         */
+
+        ret = strncpy_from_unsafe(dst, unsafe_ptr, size);
+
+        if (unlikely(ret < 0))
+
+out:
+
+                memset(dst, 0, size);
+
+
+
+        return ret;
+
+}
+
+
+
+static const struct bpf_func_proto bpf_probe_read_str_proto = {
+
+        .func           = bpf_probe_read_str,
+
+        .gpl_only       = true,
+
+        .ret_type       = RET_INTEGER,
+
+        .arg1_type      = ARG_PTR_TO_UNINIT_MEM,
+
+        .arg2_type      = ARG_CONST_SIZE_OR_ZERO,
+
+        .arg3_type      = ARG_ANYTHING,
+
 };
 
 static DEFINE_PER_CPU(struct send_signal_irq_work, send_signal_work);
