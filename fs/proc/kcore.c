@@ -549,10 +549,11 @@ static int open_kcore(struct inode *inode, struct file *filp)
 {
 	int ret = security_locked_down(LOCKDOWN_KCORE);
 
-	if (ret)
-		return ret;
 	if (!capable(CAP_SYS_RAWIO))
 		return -EPERM;
+
+	if (ret)
+		return ret;
 
 	filp->private_data = kmalloc(PAGE_SIZE, GFP_KERNEL);
 	if (!filp->private_data)
