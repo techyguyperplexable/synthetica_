@@ -529,6 +529,12 @@ int ima_load_data(enum kernel_load_data_id id)
 
 	switch (id) {
 	case LOADING_KEXEC_IMAGE:
+		if (IS_ENABLED(CONFIG_KEXEC_SIG)
+		    && arch_ima_get_secureboot()) {
+			pr_err("impossible to appraise a kernel image without a file descriptor; try using kexec_file_load syscall.\n");
+			return -EACCES;
+		}
+
 		if (ima_appraise & IMA_APPRAISE_KEXEC) {
 			pr_err("impossible to appraise a kernel image without a file descriptor; try using kexec_file_load syscall.\n");
 			return -EACCES;	/* INTEGRITY_UNKNOWN */
