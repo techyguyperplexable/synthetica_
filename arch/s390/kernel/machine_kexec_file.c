@@ -17,13 +17,13 @@ const struct kexec_file_ops * const kexec_file_loaders[] = {
 	NULL,
 };
 
-int *kexec_file_update_kernel(struct kimage *image,
+int kexec_file_update_kernel(struct kimage *image,
 			      struct s390_load_data *data)
 {
 	unsigned long *loc;
 
 	if (image->cmdline_buf_len >= ARCH_COMMAND_LINE_SIZE)
-		return ERR_PTR(-EINVAL);
+		return -EINVAL;
 
 	if (image->cmdline_buf_len)
 		memcpy(data->kernel_buf + COMMAND_LINE_OFFSET,
@@ -40,6 +40,36 @@ int *kexec_file_update_kernel(struct kimage *image,
 	if (image->initrd_buf) {
 		loc = (unsigned long *)(data->kernel_buf + INITRD_START_OFFSET);
 		*loc = data->initrd_load_addr;
+
+		loc = (unsigned long *)(data->kernel_buf + INITRD_SIZE_OFFSET);
+		*loc = image->initrd_buf_len;
+	}
+
+	return 0;
+}
+
+#ifdef CONFIG_KEXEC_SIG
+int s390_verify_sig(const char *kernel, unsigned long kernel_len)
+{
+	const unsigned long sig_len = sizeof(struct module_signature);
+	struct module_signature *ms;
+
+	if (kernel_len <= sig_len)
+		return -EKEYREJECTED;
+
+	ms = (struct module_signature *)(kernel + kernel_len - sig_len);
+
+	/* Check for module footer */
+	if (memcmp(kernel + kernel_len - 5, "~Module signature appended~\n", 28) != 0)
+		return -EKEYREJECTED;
+
+	return verify_pkcs7_signature(kernel, kernel_len - sig_len,
+				      kernel + kernel_len - sig_len, sig_len,
+				      VERIFY_USE_PLATFORM_KEYRING,
+				      VERIFYING_MODULE_SIGNATURE,
+				      NULL, NULL);
+}
+#endif /* CONFIG_KEXEC_SIG */
 
 		loc = (unsigned long *)(data->kernel_buf + INITRD_SIZE_OFFSET);
 		*loc = image->initrd_buf_len;
