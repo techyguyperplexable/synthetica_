@@ -10,6 +10,7 @@
 enum rq_qos_id {
 	RQ_QOS_WBT,
 	RQ_QOS_CGROUP,
+	RQ_QOS_COST,
 };
 
 struct rq_wait {
@@ -64,6 +65,24 @@ static inline struct rq_qos *wbt_rq_qos(struct request_queue *q)
 static inline struct rq_qos *blkcg_rq_qos(struct request_queue *q)
 {
 	return rq_qos_id(q, RQ_QOS_CGROUP);
+}
+
+static inline struct rq_qos *ioc_rq_qos(struct request_queue *q)
+{
+	return rq_qos_id(q, RQ_QOS_COST);
+}
+
+static inline const char *rq_qos_id_to_name(enum rq_qos_id id)
+{
+	switch (id) {
+	case RQ_QOS_WBT:
+		return "wbt";
+	case RQ_QOS_CGROUP:
+		return "iolatency";
+	case RQ_QOS_COST:
+		return "iocost";
+	}
+	return "unknown";
 }
 
 static inline void rq_wait_init(struct rq_wait *rq_wait)
