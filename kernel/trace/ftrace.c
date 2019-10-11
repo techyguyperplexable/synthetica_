@@ -18,6 +18,7 @@
 #include <linux/clocksource.h>
 #include <linux/sched/task.h>
 #include <linux/kallsyms.h>
+#include <linux/security.h>
 #include <linux/seq_file.h>
 #include <linux/suspend.h>
 #include <linux/tracefs.h>
@@ -3696,6 +3697,11 @@ static int
 ftrace_avail_open(struct inode *inode, struct file *file)
 {
 	struct ftrace_iterator *iter;
+	int ret;
+
+	ret = security_locked_down(LOCKDOWN_TRACEFS);
+	if (ret)
+		return ret;
 
 	if (unlikely(ftrace_disabled))
 		return -ENODEV;
@@ -3714,6 +3720,15 @@ static int
 ftrace_enabled_open(struct inode *inode, struct file *file)
 {
 	struct ftrace_iterator *iter;
+
+	/*
+	 * This shows us what functions are currently being
+	 * traced and by what. Not sure if we want lockdown
+	 * to hide such critical information for an admin.
+	 * Although, perhaps it can show information we don't
+	 * want people to see, but if something is tracing
+	 * something, we probably want to know about it.
+	 */
 
 	iter = __seq_open_private(file, &show_ftrace_seq_ops, sizeof(*iter));
 	if (!iter)
@@ -3839,6 +3854,7 @@ ftrace_filter_open(struct inode *inode, struct file *file)
 {
 	struct ftrace_ops *ops = inode->i_private;
 
+	/* Checks for tracefs lockdown */
 	return ftrace_regex_open(ops,
 			FTRACE_ITER_FILTER | FTRACE_ITER_DO_PROBES,
 			inode, file);
@@ -3849,6 +3865,7 @@ ftrace_notrace_open(struct inode *inode, struct file *file)
 {
 	struct ftrace_ops *ops = inode->i_private;
 
+	/* Checks for tracefs lockdown */
 	return ftrace_regex_open(ops, FTRACE_ITER_NOTRACE,
 				 inode, file);
 }
@@ -5763,8 +5780,12 @@ static int
 __ftrace_graph_open(struct inode *inode, struct file *file,
 		    struct ftrace_graph_data *fgd)
 {
-	int ret = 0;
+	int ret;
 	struct ftrace_hash *new_hash = NULL;
+
+	ret = security_locked_down(LOCKDOWN_TRACEFS);
+	if (ret)
+		return ret;
 
 	if (file->f_mode & FMODE_WRITE) {
 		const int size_bits = FTRACE_HASH_DEFAULT_BITS;
