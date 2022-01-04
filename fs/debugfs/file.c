@@ -146,13 +146,12 @@ static int debugfs_locked_down(struct inode *inode,
                                struct file *filp,
                                const struct file_operations *real_fops)
 {
-        if ((inode->i_mode & 07777) == 0444 &&
+        if ((inode->i_mode & 07777 & ~0444) == 0 &&
             !(filp->f_mode & FMODE_WRITE) &&
             !real_fops->unlocked_ioctl &&
             !real_fops->compat_ioctl &&
             !real_fops->mmap)
                 return 0;
-
         if (security_locked_down(LOCKDOWN_DEBUGFS))
                 return -EPERM;
 
