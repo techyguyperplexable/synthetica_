@@ -27,20 +27,22 @@ static const char *const lockdown_reasons[LOCKDOWN_CONFIDENTIALITY_MAX+1] = {
 	[LOCKDOWN_MSR] = "raw MSR access",
 	[LOCKDOWN_ACPI_TABLES] = "modifying ACPI tables",
 	[LOCKDOWN_PCMCIA_CIS] = "direct PCMCIA CIS storage",
-	[LOCKDOWN_TIOCSSERIAL] = "reconfiguration of serial port IO",
+		[LOCKDOWN_TIOCSSERIAL] = "reconfiguration of serial port IO",
 		[LOCKDOWN_MODULE_PARAMETERS] = "unsafe module parameters",
 		[LOCKDOWN_MMIOTRACE] = "unsafe mmio",
 		[LOCKDOWN_DEBUGFS] = "debugfs access",
 		[LOCKDOWN_XMON_WR] = "xmon write access",
+		[LOCKDOWN_DBG_WRITE_KERNEL] = "use of kgdb/kdb to write kernel RAM",
 		[LOCKDOWN_INTEGRITY_MAX] = "integrity",
 		[LOCKDOWN_KCORE] = "/proc/kcore access",
 		[LOCKDOWN_KPROBES] = "use of kprobes",
 		[LOCKDOWN_BPF_READ] = "use of bpf to read kernel RAM",
+		[LOCKDOWN_DBG_READ_KERNEL] = "use of kgdb/kdb to read kernel RAM",
 		[LOCKDOWN_PERF] = "unsafe use of perf",
 		[LOCKDOWN_TRACEFS] = "use of tracefs",
 		[LOCKDOWN_XMON_RW] = "xmon read and write access",
-		[LOCKDOWN_CONFIDENTIALITY_MAX] = "confidentiality",};
-
+		[LOCKDOWN_CONFIDENTIALITY_MAX] = "confidentiality",
+	};
 static const enum lockdown_reason lockdown_levels[] = {LOCKDOWN_NONE,
 						 LOCKDOWN_INTEGRITY_MAX,
 						 LOCKDOWN_CONFIDENTIALITY_MAX};
