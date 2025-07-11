@@ -618,7 +618,7 @@ static void __blk_mq_complete_request(struct request *rq)
 		if (!smp_call_function_single_async(ctx->cpu, &rq->csd))
 			goto out;
 	}
-	rq->q->softirq_done_fn(rq);
+	q->mq_ops->complete(rq);
 
 out:
 	put_cpu();
