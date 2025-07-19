@@ -101,6 +101,59 @@ static const struct device_attribute *gpubw_attr_list[] = {
 	NULL
 };
 
+static u32 generate_hint(struct devfreq_msm_adreno_tz_data *priv, int level,
+		unsigned long freq, unsigned long minfreq)
+{
+	int act_level;
+	int norm_max_cycles;
+	int norm_cycles;
+	int wait_active_percent;
+	int gpu_percent;
+
+	level = 0;
+
+	norm_max_cycles = (unsigned int)(priv->bus.ram_time) /
+			(unsigned int) priv->bus.total_time;
+	norm_cycles = (unsigned int)(priv->bus.ram_time + priv->bus.ram_wait) /
+			(unsigned int) priv->bus.total_time;
+	wait_active_percent = (100 * (unsigned int)priv->bus.ram_wait) /
+			(unsigned int) priv->bus.ram_time;
+	gpu_percent = (100 * (unsigned int)priv->bus.gpu_time) /
+			(unsigned int) priv->bus.total_time;
+
+	/*
+	 * If there's a new high watermark, update the cutoffs and send the
+	 * FAST hint, provided that we are using a floating watermark.
+	 * Otherwise check the current value against the current
+	 * cutoffs.
+	 */
+	if (norm_max_cycles > priv->bus.max && priv->bus.floating) {
+		_update_cutoff(priv, norm_max_cycles);
+		return BUSMON_FLAG_FAST_HINT;
+	}
+
+	if (minfreq == freq && wait_active_percent > 40)
+		return BUSMON_FLAG_SUPER_FAST_HINT;
+
+	if (minfreq == freq && wait_active_percent > 20)
+		return BUSMON_FLAG_FAST_HINT;
+
+	/* GPU votes for IB not AB so don't under vote the system */
+	norm_cycles = (100 * norm_cycles) / TARGET;
+	act_level = max_t(int, priv->bus.index[level], 0);
+	act_level = min_t(int, act_level, priv->bus.num - 1);
+
+	if ((norm_cycles > priv->bus.up[act_level] ||
+			wait_active_percent > WAIT_THRESHOLD) &&
+			gpu_percent > CAP)
+		return BUSMON_FLAG_FAST_HINT;
+
+	if (norm_cycles < priv->bus.down[act_level] && level)
+		return BUSMON_FLAG_SLOW_HINT;
+
+	return 0;
+}
+
 static int devfreq_gpubw_get_target(struct devfreq *df,
 		unsigned long *freq)
 {
