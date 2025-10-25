@@ -237,6 +237,8 @@ source "drivers/optics/Kconfig"
 
 source "drivers/gpu/msm/Kconfig"
 
+source "drivers/lindroid-drm/Kconfig"
+
 source "drivers/energy_model/Kconfig"
 
 source "drivers/samsung/Kconfig"
