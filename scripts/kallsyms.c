@@ -503,8 +503,7 @@ static void build_initial_tok_table(void)
 		learn_symbol(table[i].sym, table[i].len);
 }
 
-static unsigned char *find_token(unsigned char *str, int len,
-				 unsigned char *token)
+static void *find_token(unsigned char *str, int len, unsigned char *token)
 {
 	int i;
 
