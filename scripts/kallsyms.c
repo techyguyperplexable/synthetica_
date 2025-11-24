@@ -155,8 +155,8 @@ static bool is_ignored_symbol(const char *name, char type)
 	return false;
 }
 
-static void check_symbol_range(const char *sym, unsigned long long addr,
-			       struct addr_range *ranges, int entries)
+static int check_symbol_range(const char *sym, unsigned long long addr,
+			      struct addr_range *ranges, int entries)
 {
 	size_t i;
 	struct addr_range *ar;
@@ -166,12 +166,14 @@ static void check_symbol_range(const char *sym, unsigned long long addr,
 
 		if (strcmp(sym, ar->start_sym) == 0) {
 			ar->start = addr;
-			return;
+			return 0;
 		} else if (strcmp(sym, ar->end_sym) == 0) {
 			ar->end = addr;
-			return;
+			return 0;
 		}
 	}
+
+	return 1;
 }
 
 static int read_symbol(FILE *in, struct sym_entry *s)
@@ -198,8 +200,9 @@ static int read_symbol(FILE *in, struct sym_entry *s)
 	/* Ignore most absolute/undefined (?) symbols. */
 	if (strcmp(sym, "_text") == 0)
 		_text = s->addr;
-
-	check_symbol_range(sym, s->addr, text_ranges, ARRAY_SIZE(text_ranges));
+	else if (check_symbol_range(sym, s->addr, text_ranges,
+				    ARRAY_SIZE(text_ranges)) == 0)
+		/* nothing to do */;
 
 	/* include the type field in the symbol name, so that it gets
 	 * compressed together */
