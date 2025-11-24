@@ -210,7 +210,7 @@ static struct sym_entry *read_symbol(FILE *in)
 
 	len = strlen(name) + 1;
 
-	sym = malloc(sizeof(*sym) + len + 1);
+	sym = malloc(sizeof(*sym) + len);
 	if (!sym) {
 		fprintf(stderr, "kallsyms failure: "
 			"unable to allocate required amount of memory\n");
@@ -219,7 +219,7 @@ static struct sym_entry *read_symbol(FILE *in)
 	sym->addr = addr;
 	sym->len = len;
 	sym->sym[0] = type;
-	strcpy(sym_name(sym), name);
+	memcpy(sym_name(sym), name, len);
 	sym->percpu_absolute = 0;
 
 	return sym;
