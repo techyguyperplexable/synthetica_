@@ -120,7 +120,7 @@ cat $HOME/bomb/out/arch/arm64/boot/dts/vendor/qcom/*.dtb > "$ANYKERNEL_DIR/dtb"
 # Build Kernel Image
 
 # **FIX:** Removed the invisible non-breaking spaces before the 'CC=' line
-make -j12 O="$OUT_DIR" $KERNEL_MAKE_ENV $HOST_BUILD_ENV \
+make -j999 O="$OUT_DIR" $KERNEL_MAKE_ENV $HOST_BUILD_ENV \
     CC="${LLVM_PATH}clang --target=aarch64-linux-gnu" Image
 
 echo "**Build outputs**"
