@@ -144,3 +144,4 @@ Android.bp
 # Kernel Build
 out/
 toolchains/
+not_kernel*.zip
