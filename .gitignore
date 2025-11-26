@@ -145,3 +145,6 @@ Android.bp
 out/
 toolchains/
 not_kernel*.zip
+AnyKernel3/Image
+AnyKernel3/dtb
+AnyKernel3/dtbo.img
