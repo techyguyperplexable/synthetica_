@@ -2,7 +2,7 @@
 
 # --- Configuration & Paths ---
 KERNEL_ROOT=$(pwd)
-KERNEL_NAME="Acacia"
+KERNEL_NAME="Semetary"
 DATE=$(date +"%Y%m%d")
 
 # Directories relative to where the script is run
