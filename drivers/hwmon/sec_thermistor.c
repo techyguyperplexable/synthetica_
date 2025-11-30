@@ -252,6 +252,7 @@ int sec_therm_get_ap_temperature(void)
 	else
 		return adc;
 
+		temp -= temp / 20; /* Hack: -5% temp */ 
 	return temp;
 }
 
