@@ -92,7 +92,7 @@ rm -rf "$OUT_DIR"
 mkdir -p "$OUT_DIR"
 
 # Generate Defconfig
-make O="$OUT_DIR" $HOST_BUILD_ENV vendor/kona-not_defconfig vendor/samsung/kona-sec-not.config vendor/samsung/r8q.config vendor/samsung/nh.config
+make O="$OUT_DIR" $HOST_BUILD_ENV vendor/kona-not_defconfig vendor/samsung/kona-sec-not.config vendor/samsung/r8q.config vendor/samsung/nh.config vendor/samsung/lindroid.config
 
 echo "*****************************************"
 echo "  Building Device Tree (DTBO)"
