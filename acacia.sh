@@ -2,7 +2,7 @@
 
 # --- Configuration & Paths ---
 KERNEL_ROOT=$(pwd)
-KERNEL_NAME="Semetary"
+KERNEL_NAME="buckshot"
 DATE=$(date +"%Y%m%d")
 
 # Directories relative to where the script is run
@@ -141,7 +141,7 @@ cat "$OUT_DIR"/arch/arm64/boot/dts/vendor/qcom/*.dtb > "$ANYKERNEL_DIR/dtb"
 
 # 3. Zip it up
 gitsha=$(git rev-parse --short HEAD)
-ZIP_NAME="not_kernel-${KERNEL_NAME}-${gitsha}-${DATE}.zip"
+ZIP_NAME="Acacia-${KERNEL_NAME}-${gitsha}-${DATE}.zip"
 
 cd "$ANYKERNEL_DIR" || exit 1
 
