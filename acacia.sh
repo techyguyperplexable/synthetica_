@@ -1,23 +1,29 @@
 #!/bin/bash
 
-# --- Configuration & Paths ---
 KERNEL_ROOT=$(pwd)
 KERNEL_NAME="buckshot"
 DATE=$(date +"%Y%m%d")
+LOG_FILE="$KERNEL_ROOT/build.log"
 
-# Directories relative to where the script is run
 TOOLCHAIN_PARENT_DIR="$KERNEL_ROOT/toolchains"
 LLVM_DIR="$TOOLCHAIN_PARENT_DIR/neutron-clang"
 OUT_DIR="$KERNEL_ROOT/out"
-# Assumes you have cloned AnyKernel3 into this folder name
 ANYKERNEL_DIR="$KERNEL_ROOT/AnyKernel3" 
 
-# --- Helper for logging ---
+tg_msg() {
+    [ -n "$TG_BOT_TOKEN" ] && curl -s -X POST "https://api.telegram.org/bot$TG_BOT_TOKEN/sendMessage" -d chat_id="$TG_CHAT_ID" -d text="$1" -d parse_mode="Markdown" > /dev/null
+}
+
+tg_err() {
+    tg_msg "❌ *Build Failed!* Uploading log..."
+    [ -n "$TG_BOT_TOKEN" ] && curl -s -F chat_id="$TG_CHAT_ID" -F document=@"$LOG_FILE" -F caption="Error Log" "https://api.telegram.org/bot$TG_BOT_TOKEN/sendDocument" > /dev/null
+    exit 1
+}
+
 info() {
     echo -e "\n\e[1;36m==>\e[0m \e[1m$1\e[0m"
 }
 
-# --- Dependency Check ---
 info "Checking for build dependencies"
 DEPS=("curl" "jq" "tar" "zstd" "zip")
 missing_deps=0
@@ -33,7 +39,6 @@ if [ "$missing_deps" -eq 1 ]; then
     exit 1
 fi
 
-# --- Toolchain Installation ---
 info "Setting up toolchain"
 LLVM_PATH="$LLVM_DIR/bin/"
 API_URL="https://api.github.com/repos/Neutron-Toolchains/clang-build-catalogue/releases/latest"
@@ -70,9 +75,6 @@ else
     info "Toolchain installed."
 fi
 
-# --- Environment Setup ---
-
-# Clean PATH to avoid duplicates
 PATH="$LLVM_PATH:$PATH"
 
 HOST_BUILD_ENV="ARCH=arm64 \
@@ -83,34 +85,44 @@ HOST_BUILD_ENV="ARCH=arm64 \
 
 KERNEL_MAKE_ENV="DTC_EXT=$KERNEL_ROOT/tools/dtc CONFIG_BUILD_ARM64_DT_OVERLAY=y"
 
-# --- Build Start ---
 echo "*****************************************"
 echo "  Cleaning Output Directory"
 echo "*****************************************"
 
+tg_msg "🔨 *Build Started:* $KERNEL_NAME"
+
 rm -rf "$OUT_DIR"
 mkdir -p "$OUT_DIR"
+rm -f "$LOG_FILE"
 
-# Generate Defconfig
-make O="$OUT_DIR" $HOST_BUILD_ENV vendor/kona-not_defconfig vendor/samsung/kona-sec-not.config vendor/samsung/r8q.config vendor/samsung/nh.config vendor/samsung/lindroid.config
+make O="$OUT_DIR" $HOST_BUILD_ENV vendor/kona-not_defconfig vendor/samsung/kona-sec-not.config vendor/samsung/r8q.config vendor/samsung/nh.config vendor/samsung/lindroid.config 2>&1 | tee -a "$LOG_FILE"
+
+if [ ${PIPESTATUS[0]} -ne 0 ]; then tg_err; fi
 
 echo "*****************************************"
 echo "  Building Device Tree (DTBO)"
 echo "*****************************************"
 
+tg_msg "🛠 Compiling DTBO..."
+
 make -j$(nproc) O="$OUT_DIR" $KERNEL_MAKE_ENV $HOST_BUILD_ENV \
-    CC="clang --target=aarch64-linux-gnu" dtbo.img
+    CC="clang --target=aarch64-linux-gnu" dtbo.img 2>&1 | tee -a "$LOG_FILE"
+
+if [ ${PIPESTATUS[0]} -ne 0 ]; then tg_err; fi
 
 echo "*****************************************"
 echo "  Building Kernel Image"
 echo "*****************************************"
 
-make -j$(nproc) O="$OUT_DIR" $KERNEL_MAKE_ENV $HOST_BUILD_ENV \
-    CC="clang --target=aarch64-linux-gnu" Image
+tg_msg "🛠 Compiling Kernel Image..."
 
-# --- Packaging ---
+make -j$(nproc) O="$OUT_DIR" $KERNEL_MAKE_ENV $HOST_BUILD_ENV \
+    CC="clang --target=aarch64-linux-gnu" Image 2>&1 | tee -a "$LOG_FILE"
+
+if [ ${PIPESTATUS[0]} -ne 0 ]; then tg_err; fi
 
 info "Packaging Kernel"
+tg_msg "📦 Packaging..."
 
 if [ ! -d "$ANYKERNEL_DIR" ]; then
     echo -e "\e[1;31mError: AnyKernel3 directory not found at $ANYKERNEL_DIR\e[0m"
@@ -118,13 +130,11 @@ if [ ! -d "$ANYKERNEL_DIR" ]; then
     exit 1
 fi
 
-# 1. Clean previous build artifacts from AnyKernel3 (but keep the scripts!)
 rm -f "$ANYKERNEL_DIR/Image"
 rm -f "$ANYKERNEL_DIR/dtbo.img"
 rm -f "$ANYKERNEL_DIR/dtb"
 rm -f "$ANYKERNEL_DIR"/*.zip
 
-# 2. Copy new artifacts
 if [ -f "$OUT_DIR/arch/arm64/boot/Image" ]; then
     cp "$OUT_DIR/arch/arm64/boot/Image" "$ANYKERNEL_DIR/Image"
 else
@@ -136,29 +146,24 @@ if [ -f "$OUT_DIR/arch/arm64/boot/dtbo.img" ]; then
     cp "$OUT_DIR/arch/arm64/boot/dtbo.img" "$ANYKERNEL_DIR/dtbo.img"
 fi
 
-# Concatenate DTBs
 cat "$OUT_DIR"/arch/arm64/boot/dts/vendor/qcom/*.dtb > "$ANYKERNEL_DIR/dtb"
 
-# 3. Zip it up
 gitsha=$(git rev-parse --short HEAD)
 ZIP_NAME="Acacia-${KERNEL_NAME}-${gitsha}-${DATE}.zip"
 
 cd "$ANYKERNEL_DIR" || exit 1
 
-# Zip everything in the folder recursively
 zip -r9 "$ZIP_NAME" * -x .git README.md *placeholder
 
-# 4. Move Zip to Root
 mv "$ZIP_NAME" "$KERNEL_ROOT/"
 
 echo "*****************************************"
 echo " Build Complete!"
 echo " Zip located at: $KERNEL_ROOT/$ZIP_NAME"
-if [ ! -z "$TG_BOT_TOKEN" ]; then 
-    LOG=$(git log --pretty=format:"%h: %s" -n 5) 
-    curl -s -F chat_id="$TG_CHAT_ID" -F document=@"$KERNEL_ROOT/$ZIP_NAME" -F caption="Build: $ZIP_NAME"$'
-
-'"$LOG" "https://api.telegram.org/bot$TG_BOT_TOKEN/sendDocument" > /dev/null 
-    curl -s -F chat_id="$TG_CHAT_ID" -F document=@"$OUT_DIR/.config" "https://api.telegram.org/bot$TG_BOT_TOKEN/sendDocument" > /dev/null 
-fi
 echo "*****************************************"
+
+if [ -n "$TG_BOT_TOKEN" ]; then
+    LOG=$(git log --pretty=format:"%h: %s" -n 5)
+    curl -s -F chat_id="$TG_CHAT_ID" -F document=@"$KERNEL_ROOT/$ZIP_NAME" -F caption="✅ *Build Complete!* $ZIP_NAME"$'"'\\n\\n'"'"$LOG" -F parse_mode="Markdown" "https://api.telegram.org/bot$TG_BOT_TOKEN/sendDocument" > /dev/null
+    curl -s -F chat_id="$TG_CHAT_ID" -F document=@"$OUT_DIR/.config" "https://api.telegram.org/bot$TG_BOT_TOKEN/sendDocument" > /dev/null
+fi
