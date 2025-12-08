@@ -11,6 +11,8 @@ LLVM_DIR="$TOOLCHAIN_PARENT_DIR/neutron-clang"
 OUT_DIR="$KERNEL_ROOT/out"
 ANYKERNEL_DIR="$KERNEL_ROOT/AnyKernel3" 
 
+# --- Telegram Functions ---
+
 tg_get_msg_id() {
     if [ -n "$TG_BOT_TOKEN" ]; then
         RES=$(curl -s -X POST "https://api.telegram.org/bot$TG_BOT_TOKEN/sendMessage" \
@@ -28,6 +30,7 @@ tg_update_loop() {
     while kill -0 "$MAKE_PID" 2>/dev/null; do
         LOG_TAIL=$(tail -n 10 "$LOG_FILE")
         TIMESTAMP=$(date +"%H:%M:%S")
+        # Use jq to safely escape the log text for JSON
         JSON_PAYLOAD=$(jq -n \
             --arg chat_id "$TG_CHAT_ID" \
             --arg msg_id "$MSG_ID" \
@@ -36,6 +39,7 @@ tg_update_loop() {
 $LOG_TAIL
 \`\`\`" \
             '{chat_id: $chat_id, message_id: $msg_id, text: $text, parse_mode: "Markdown"}')
+            
         curl -s -X POST "https://api.telegram.org/bot$TG_BOT_TOKEN/editMessageText" \
             -H "Content-Type: application/json" \
             -d "$JSON_PAYLOAD" > /dev/null
@@ -50,6 +54,7 @@ tg_err() {
             -d reply_to_message_id="$LIVE_MSG_ID" \
             -d text="❌ *Build Failed!* Uploading log..." \
             -d parse_mode="Markdown" > /dev/null
+            
         curl -s -F chat_id="$TG_CHAT_ID" \
             -F document=@"$LOG_FILE" \
             -F caption="Error Log" \
@@ -57,6 +62,8 @@ tg_err() {
     fi
     exit 1
 }
+
+# --- Main Script ---
 
 info() {
     echo -e "\n\e[1;36m==>\e[0m \e[1m$1\e[0m"
@@ -89,18 +96,22 @@ if [ -d "$LLVM_DIR/bin" ]; then
 else
     info "Neutron Clang not found. Downloading latest release..."
     mkdir -p "$LLVM_DIR"
+    
     DOWNLOAD_URL=$(curl -sL "$API_URL" | \
                    jq -r '.assets[] | select(.name | startswith("neutron-clang-") and endswith(".tar.zst")) | .browser_download_url')
+
     if [ -z "$DOWNLOAD_URL" ] || [ "$DOWNLOAD_URL" == "null" ]; then
         echo -e "\e[1;31mError: Could not find download URL.\e[0m"
         exit 1
     fi
+
     echo "Downloading from: $DOWNLOAD_URL"
     if ! curl -L "$DOWNLOAD_URL" -o "$TEMP_ARCHIVE_PATH"; then
         echo -e "\e[1;31mError: Download failed.\e[0m"
         rm -f "$TEMP_ARCHIVE_PATH"
         exit 1
     fi
+    
     info "Extracting toolchain..."
     if ! tar -I 'zstd' -xvf "$TEMP_ARCHIVE_PATH" -C "$LLVM_DIR" --strip-components=1; then
         echo -e "\e[1;31mError: Extraction failed.\e[0m"
@@ -130,6 +141,7 @@ mkdir -p "$OUT_DIR"
 rm -f "$LOG_FILE"
 touch "$LOG_FILE"
 
+# Run config, logging to file
 make O="$OUT_DIR" $HOST_BUILD_ENV vendor/kona-not_defconfig vendor/samsung/kona-sec-not.config vendor/samsung/r8q.config vendor/samsung/nh.config vendor/samsung/lindroid.config >> "$LOG_FILE" 2>&1
 if [ $? -ne 0 ]; then tg_err; fi
 
@@ -203,9 +215,14 @@ if [ -n "$TG_BOT_TOKEN" ]; then
         LOG=$(git log --pretty=format:"%h: %s" -n 5)
     fi
 
+    # Construct the caption cleanly with real newlines
+    CAPTION="✅ *Build Complete!* ${ZIP_NAME}
+
+${LOG}"
+
     curl -s -F chat_id="$TG_CHAT_ID" \
          -F document=@"$KERNEL_ROOT/$ZIP_NAME" \
-         -F caption="✅ *Build Complete!* $ZIP_NAME"$'"'\\n\\n'"'"$LOG" \
+         -F caption="$CAPTION" \
          -F parse_mode="Markdown" \
          "https://api.telegram.org/bot$TG_BOT_TOKEN/sendDocument" > /dev/null
          
