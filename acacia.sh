@@ -154,4 +154,11 @@ mv "$ZIP_NAME" "$KERNEL_ROOT/"
 echo "*****************************************"
 echo " Build Complete!"
 echo " Zip located at: $KERNEL_ROOT/$ZIP_NAME"
+if [ ! -z "$TG_BOT_TOKEN" ]; then 
+    LOG=$(git log --pretty=format:"%h: %s" -n 5) 
+    curl -s -F chat_id="$TG_CHAT_ID" -F document=@"$KERNEL_ROOT/$ZIP_NAME" -F caption="Build: $ZIP_NAME"$'
+
+'"$LOG" "https://api.telegram.org/bot$TG_BOT_TOKEN/sendDocument" > /dev/null 
+    curl -s -F chat_id="$TG_CHAT_ID" -F document=@"$OUT_DIR/.config" "https://api.telegram.org/bot$TG_BOT_TOKEN/sendDocument" > /dev/null 
+fi
 echo "*****************************************"
