@@ -2203,6 +2203,7 @@ static int page_writeback_cpu_online(unsigned int cpu)
  */
 void __init page_writeback_init(void)
 {
+	dirty_writeback_interval = 1500; /* Boost: 15s */
 	BUG_ON(wb_domain_init(&global_wb_domain, GFP_KERNEL));
 
 	cpuhp_setup_state(CPUHP_AP_ONLINE_DYN, "mm/writeback:online",
