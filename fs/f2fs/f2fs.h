@@ -594,9 +594,9 @@ enum {
 /* congestion wait timeout value based on the scheduler tick rate*/
 #if (CONFIG_HZ < 100)
 #define	DEFAULT_IO_TIMEOUT	(msecs_to_jiffies(20)) /* 20ms */
-#elif CONFIG_HZ_100
+#elif defined(CONFIG_HZ_100)
 #define	DEFAULT_IO_TIMEOUT	(msecs_to_jiffies(10)) /* 10ms */
-#elif CONFIG_HZ_250
+#elif defined(CONFIG_HZ_250)
 #define	DEFAULT_IO_TIMEOUT	(msecs_to_jiffies(8)) /* 8ms */
 #elif (CONFIG_HZ > 250)
 #define	DEFAULT_IO_TIMEOUT	(msecs_to_jiffies(6)) /* 6ms */
