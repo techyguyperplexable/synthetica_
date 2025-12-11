@@ -112,7 +112,7 @@ enum {
 	BINDER_DEBUG_SPINLOCKS              = 1U << 14,
 };
 static uint32_t binder_debug_mask = 0;
-module_param_named(debug_mask, binder_debug_mask, uint, 0644);
+module_param_named(debug_mask, binder_debug_mask, uint, 0);
 
 char *binder_devices_param = CONFIG_ANDROID_BINDER_DEVICES;
 module_param_named(devices, binder_devices_param, charp, 0444);
@@ -170,12 +170,12 @@ static inline void binder_user_error(const char *fmt, ...)
 static struct binder_stats binder_stats;
 
 static inline void binder_stats_deleted(enum binder_stat_types type)
-{
+{ return;
 	atomic_inc(&binder_stats.obj_deleted[type]);
 }
 
 static inline void binder_stats_created(enum binder_stat_types type)
-{
+{ return;
 	atomic_inc(&binder_stats.obj_created[type]);
 }
 
