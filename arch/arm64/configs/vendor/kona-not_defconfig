@@ -803,3 +803,9 @@ CONFIG_DEFAULT_TCP_CONG="westwood"
 # CONFIG_DEBUG_MUTEXES is not set
 # CONFIG_DEBUG_INFO is not set
 CONFIG_WQ_POWER_EFFICIENT_DEFAULT=y
+
+# --- Samsung Bloat Removal ---
+# CONFIG_SEC_DEBUG is not set
+# CONFIG_SEC_LOG_BUF is not set
+# CONFIG_SAMSUNG_DEBUG is not set
+# CONFIG_DEBUG_LL is not set
