@@ -22,11 +22,11 @@ static void swap_fn(struct work_struct *work);
 DECLARE_WORK(swap_work, swap_fn);
 
 /* User knob to enable/disable process reclaim feature */
-static int enable_process_reclaim;
+static int enable_process_reclaim = 0;
 module_param_named(enable_process_reclaim, enable_process_reclaim, int, 0644);
 
 /* The max number of pages tried to be reclaimed in a single run */
-int per_swap_size = SWAP_CLUSTER_MAX * 32;
+int per_swap_size = SWAP_CLUSTER_MAX * 0;
 module_param_named(per_swap_size, per_swap_size, int, 0644);
 
 /* The per task max number of nomap pages to be reclaimed */
