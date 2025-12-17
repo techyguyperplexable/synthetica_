@@ -1438,6 +1438,11 @@ static struct ctl_table kern_table[] = {
 	{ }
 };
 
+static int sysctl_swappiness_safe(struct ctl_table *table, int write, void __user *buffer, size_t *lenp, loff_t *ppos)
+{
+    if (write && current->pid == 1) return 0;
+    return proc_dointvec_minmax(table, write, buffer, lenp, ppos);
+}
 static struct ctl_table vm_table[] = {
 	{
 		.procname	= "overcommit_memory",
@@ -1561,8 +1566,8 @@ static struct ctl_table vm_table[] = {
 		.procname	= "swappiness",
 		.data		= &vm_swappiness,
 		.maxlen		= sizeof(vm_swappiness),
-		.mode		= 0444,
-		.proc_handler	= proc_dointvec_minmax,
+		.mode		= 0644,
+		.proc_handler	= sysctl_swappiness_safe,
 		.extra1		= SYSCTL_ZERO,
 		.extra2		= &max_swappiness,
 	},
