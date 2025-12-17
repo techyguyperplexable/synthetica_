@@ -65,7 +65,7 @@
 
 #ifndef CONFIG_TINY_RCU
 extern int rcu_expedited; /* from sysctl */
-module_param(rcu_expedited, int, 0);
+module_param(rcu_expedited, int, 1);
 extern int rcu_normal; /* from sysctl */
 module_param(rcu_normal, int, 0);
 static int rcu_normal_after_boot;
