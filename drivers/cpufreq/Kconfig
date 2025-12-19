@@ -117,6 +117,12 @@ config CPU_FREQ_DEFAULT_GOV_SCHEDUTIL
 
 endchoice
 
+config CPU_FREQ_GOV_ACACIA
+	tristate "Acacia High Performance"
+	select CPU_FREQ_GOV_COMMON
+	help
+	  Sets the CPU frequency to the highest available for maximum performance.
+
 config CPU_FREQ_GOV_PERFORMANCE
 	tristate "'performance' governor"
 	help
