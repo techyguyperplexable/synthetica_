@@ -164,7 +164,7 @@ static void estimate_pid_constants(struct thermal_zone_device *tz,
 			temperature_threshold;
 
 	if (!tz->tzp->k_i || force)
-		tz->tzp->k_i = int_to_frac(10) / 1000;
+		tz->tzp->k_i = int_to_frac(8) / 1000;
 	/*
 	 * The default for k_d and integral_cutoff is 0, so we can
 	 * leave them as they are.
