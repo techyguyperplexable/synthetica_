@@ -1921,7 +1921,7 @@ static inline int ext4_forced_shutdown(struct ext4_sb_info *sbi)
  */
 #define	EXT4_DEF_PROJID		0
 
-#define EXT4_DEF_INODE_READAHEAD_BLKS	32
+#define EXT4_DEF_INODE_READAHEAD_BLKS	64
 
 /*
  * Default mount options
