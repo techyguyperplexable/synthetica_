@@ -3,7 +3,7 @@
 # --- Configuration ---
 # Use absolute path to prevent directory jumping issues
 KERNEL_ROOT=$(pwd)
-KERNEL_NAME="buckshot"
+KERNEL_NAME="backshot"
 DATE=$(date +"%Y%m%d")
 LOG_FILE="$KERNEL_ROOT/build.log"
 LAST_SHA_FILE="$KERNEL_ROOT/.acacia_last_sha"
