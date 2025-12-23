@@ -14,7 +14,7 @@ struct adreno_context_type {
 	const char *str;
 };
 
-#define ADRENO_CONTEXT_DRAWQUEUE_SIZE 128
+#define ADRENO_CONTEXT_DRAWQUEUE_SIZE 192
 
 struct kgsl_device;
 struct adreno_device;
