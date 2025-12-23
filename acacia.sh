@@ -128,11 +128,12 @@ touch "$LOG_FILE"
 tg_start_monitor
 
 # Config
-make O="$OUT_DIR" $HOST_BUILD_ENV vendor/kona-not_defconfig vendor/samsung/kona-sec-not.config vendor/samsung/r8q.config vendor/samsung/nh.config vendor/samsung/lindroid.config >> "$LOG_FILE" 2>&1
-if [ $? -ne 0 ]; then tg_stop_monitor; tg_upload_log; exit 1; fi
+info "Generating config..."
+make O="$OUT_DIR" $HOST_BUILD_ENV vendor/kona-not_defconfig vendor/samsung/kona-sec-not.config vendor/samsung/r8q.config vendor/samsung/nh.config vendor/samsung/lindroid.config 2>&1 | tee -a "$LOG_FILE"
+if [ ${PIPESTATUS[0]} -ne 0 ]; then tg_stop_monitor; tg_upload_log; exit 1; fi
 
 # Compilation
-echo "Starting Compilation..."
+info "Starting Compilation..."
 (
     echo "--- Building DTBO ---"
     make -j$(nproc) O="$OUT_DIR" $KERNEL_MAKE_ENV $HOST_BUILD_ENV CC="clang --target=aarch64-linux-gnu" dtbo.img
@@ -142,9 +143,10 @@ echo "Starting Compilation..."
     else
         exit 1
     fi
-) >> "$LOG_FILE" 2>&1
+) 2>&1 | tee -a "$LOG_FILE"
+BUILD_STATUS=${PIPESTATUS[0]}
 
-if [ $? -eq 0 ]; then
+if [ $BUILD_STATUS -eq 0 ]; then
     tg_stop_monitor
 else
     tg_stop_monitor
