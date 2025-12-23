@@ -30,7 +30,7 @@
 
 #define KGSL_MAX_BUSLEVELS	20
 
-#define DEFAULT_BUS_P 25
+#define DEFAULT_BUS_P 40
 
 /* Order deeply matters here because reasons. New entries go on the end */
 static const char * const clocks[] = {
