@@ -93,8 +93,8 @@ enum sched_tunable_scaling sysctl_sched_tunable_scaling = SCHED_TUNABLESCALING_N
  * (EEVDF default: 3 msec * (1 + ilog(ncpus)), units: nanoseconds)
  * (NOT   default: 2.8 msec * 1, units: nanoseconds)
  */
-unsigned int sysctl_sched_base_slice			= 2800000ULL;
-static unsigned int normalized_sysctl_sched_base_slice	= 2800000ULL;
+unsigned int sysctl_sched_base_slice			= 2000000ULL;
+static unsigned int normalized_sysctl_sched_base_slice	= 2000000ULL;
 
 const_debug unsigned int sysctl_sched_migration_cost	= 0UL;
 DEFINE_PER_CPU_READ_MOSTLY(int, sched_load_boost);
