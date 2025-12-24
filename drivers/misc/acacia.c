@@ -69,7 +69,7 @@ static const struct proc_ops fops = {
 
 static int __init acacia_init(void)
 {
-	if (!proc_create(DRIVER_NAME, 0220, NULL, &fops))
+	if (!proc_create(DRIVER_NAME, 0200, NULL, &fops))
 		return -ENOMEM;
 
 	enable_boost();
