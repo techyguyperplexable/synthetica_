@@ -4,21 +4,12 @@
 # This file is included by the global makefile so that you can add your own
 # architecture-specific flags and dependencies.
 #
-# This file is subject to the terms and conditions of the GNU General Public
-# License.  See the file "COPYING" in the main directory of this archive
-# for more details.
-#
-# Copyright (C) 2012, ARM Ltd.
-# Author: Will Deacon <will.deacon@arm.com>
-#
-# Based on the ia64 boot/Makefile.
-#
 
 include $(srctree)/arch/arm64/boot/dts/Makefile
 
 OBJCOPYFLAGS_Image :=-O binary -R .note -R .note.gnu.build-id -R .comment -S
 
-targets := Image Image.bz2 Image.gz Image.lz4 Image.lzma Image.lzo
+targets := Image Image.bz2 Image.gz Image.lz4 Image.lzma Image.lzo dtbo.img
 
 DTB_NAMES := $(subst $\",,$(CONFIG_BUILD_ARM64_APPENDED_DTB_IMAGE_NAMES))
 ifneq ($(DTB_NAMES),)
@@ -29,10 +20,6 @@ endif
 DTB_OBJS := $(shell find $(obj)/dts/ -name \*.dtb)
 
 # Add RTIC DTB to the DTB list if RTIC MPGen is enabled
-# Note, we keep this for compatibility with
-# BUILD_ARM64_APPENDED_DTB_IMAGE targets.
-# The rtic_mp.dts would be generated with the vmlinux if
-# MPGen enabled (RTIC_MPGEN defined).
 ifdef RTIC_MPGEN
 DTB_OBJS += rtic_mp.dtb
 endif
@@ -67,6 +54,10 @@ $(obj)/Image.lzo: $(obj)/Image FORCE
 
 $(obj)/Image.gz-dtb: $(obj)/Image.gz $(DTB_OBJS) FORCE
 	$(call if_changed,cat)
+
+$(obj)/dtbo.img: FORCE
+	@echo "  DTBOIMG $@"
+	python3 $(srctree)/scripts/mkdtboimg.py create $@ $(shell find $(obj)/dts/samsung/r8q -name "*.dtbo")
 
 install:
 	$(CONFIG_SHELL) $(srctree)/$(src)/install.sh $(KERNELRELEASE) \
