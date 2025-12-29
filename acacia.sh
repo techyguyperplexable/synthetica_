@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # --- Configuration ---
-# Use absolute path to prevent directory jumping issues
 KERNEL_ROOT=$(pwd)
 KERNEL_NAME="backshot"
 DATE=$(date +"%Y%m%d")
@@ -13,6 +12,27 @@ TOOLCHAIN_PARENT_DIR="$KERNEL_ROOT/toolchains"
 LLVM_DIR="$TOOLCHAIN_PARENT_DIR/neutron-clang"
 OUT_DIR="$KERNEL_ROOT/out"
 ANYKERNEL_DIR="$KERNEL_ROOT/AnyKernel3" 
+
+# --- SELinux Mode Selection ---
+info() { echo -e "\n\e[1;36m==>\e[0m \e[1m$1\e[0m"; }
+
+info "Select SELinux mode:"
+echo "1) Enforcing"
+echo "2) Permissive"
+read -p "Choice [1/2]: " SELINUX_CHOICE
+
+case "$SELINUX_CHOICE" in
+    2)
+        SELINUX_MODE="permissive"
+        SELINUX_CONFIG="vendor/samsung/permissive.config"
+        ;;
+    *)
+        SELINUX_MODE="enforcing"
+        SELINUX_CONFIG="vendor/samsung/enforcing.config"
+        ;;
+esac
+
+info "Building with SELinux: $SELINUX_MODE" 
 
 # --- Telegram Functions ---
 tg_msg() {
@@ -81,8 +101,6 @@ tg_upload_log() {
 trap 'tg_stop_monitor; echo "Build cancelled."; exit 130' INT
 
 # --- Dependencies ---
-info() { echo -e "\n\e[1;36m==>\e[0m \e[1m$1\e[0m"; }
-
 info "Checking for build dependencies"
 DEPS=("curl" "jq" "tar" "zstd" "zip")
 for dep in "${DEPS[@]}"; do
@@ -129,7 +147,7 @@ tg_start_monitor
 
 # Config
 info "Generating config..."
-make O="$OUT_DIR" $HOST_BUILD_ENV vendor/kona-not_defconfig vendor/samsung/kona-sec-not.config vendor/samsung/r8q.config vendor/samsung/nh.config vendor/samsung/lindroid.config 2>&1 | tee -a "$LOG_FILE"
+make O="$OUT_DIR" $HOST_BUILD_ENV vendor/kona-not_defconfig vendor/samsung/kona-sec-not.config vendor/samsung/r8q.config vendor/samsung/nh.config vendor/samsung/lindroid.config $SELINUX_CONFIG 2>&1 | tee -a "$LOG_FILE"
 if [ ${PIPESTATUS[0]} -ne 0 ]; then tg_stop_monitor; tg_upload_log; exit 1; fi
 
 # Compilation
@@ -175,7 +193,11 @@ fi
 cat "$OUT_DIR"/arch/arm64/boot/dts/vendor/qcom/*.dtb > "$ANYKERNEL_DIR/dtb"
 
 SHORT_SHA=$(git rev-parse --short HEAD)
-ZIP_NAME="Acacia-${KERNEL_NAME}-${SHORT_SHA}-${DATE}.zip"
+if [ "$SELINUX_MODE" = "permissive" ]; then
+    ZIP_NAME="Acacia-${KERNEL_NAME}-${SHORT_SHA}-${DATE}-permissive.zip"
+else
+    ZIP_NAME="Acacia-${KERNEL_NAME}-${SHORT_SHA}-${DATE}.zip"
+fi
 
 # Zip it
 cd "$ANYKERNEL_DIR" || exit 1
