@@ -13,9 +13,10 @@ LLVM_DIR="$TOOLCHAIN_PARENT_DIR/neutron-clang"
 OUT_DIR="$KERNEL_ROOT/out"
 ANYKERNEL_DIR="$KERNEL_ROOT/AnyKernel3" 
 
-# --- SELinux Mode Selection ---
+# --- Build Prompt Selection ---
 info() { echo -e "\n\e[1;36m==>\e[0m \e[1m$1\e[0m"; }
 
+# 1. SELinux Mode
 info "Select SELinux mode:"
 echo "1) Enforcing"
 echo "2) Permissive"
@@ -32,7 +33,25 @@ case "$SELINUX_CHOICE" in
         ;;
 esac
 
-info "Building with SELinux: $SELINUX_MODE" 
+# 2. Build Variant (Oplus vs Normal)
+info "Select Build Variant:"
+echo "1) Normal"
+echo "2) Oplus"
+read -p "Choice [1/2]: " VARIANT_CHOICE
+
+case "$VARIANT_CHOICE" in
+    2)
+        IS_OPLUS=true
+        # Assumes file is at arch/arm64/configs/vendor/oplus.config
+        EXTRA_CONFIG="vendor/oplus.config" 
+        ;;
+    *)
+        IS_OPLUS=false
+        EXTRA_CONFIG=""
+        ;;
+esac
+
+info "Building Variant: $([ "$IS_OPLUS" = true ] && echo "Oplus" || echo "Normal") | SELinux: $SELINUX_MODE" 
 
 # --- Telegram Functions ---
 tg_msg() {
@@ -147,7 +166,8 @@ tg_start_monitor
 
 # Config
 info "Generating config..."
-make O="$OUT_DIR" $HOST_BUILD_ENV vendor/kona-not_defconfig vendor/samsung/kona-sec-not.config vendor/samsung/r8q.config vendor/samsung/nh.config vendor/samsung/lindroid.config $SELINUX_CONFIG 2>&1 | tee -a "$LOG_FILE"
+# Added EXTRA_CONFIG (oplus.config) to the make command
+make O="$OUT_DIR" $HOST_BUILD_ENV vendor/kona-not_defconfig vendor/samsung/kona-sec-not.config vendor/samsung/r8q.config vendor/samsung/nh.config vendor/samsung/lindroid.config $SELINUX_CONFIG $EXTRA_CONFIG 2>&1 | tee -a "$LOG_FILE"
 if [ ${PIPESTATUS[0]} -ne 0 ]; then tg_stop_monitor; tg_upload_log; exit 1; fi
 
 # Compilation
@@ -193,11 +213,18 @@ fi
 cat "$OUT_DIR"/arch/arm64/boot/dts/vendor/qcom/*.dtb > "$ANYKERNEL_DIR/dtb"
 
 SHORT_SHA=$(git rev-parse --short HEAD)
-if [ "$SELINUX_MODE" = "permissive" ]; then
-    ZIP_NAME="Acacia-${KERNEL_NAME}-${SHORT_SHA}-${DATE}-permissive.zip"
-else
-    ZIP_NAME="Acacia-${KERNEL_NAME}-${SHORT_SHA}-${DATE}.zip"
+
+# Build the Zip suffix based on choices
+ZIP_SUFFIX=""
+if [ "$IS_OPLUS" = true ]; then
+    ZIP_SUFFIX="${ZIP_SUFFIX}-oplus"
 fi
+
+if [ "$SELINUX_MODE" = "permissive" ]; then
+    ZIP_SUFFIX="${ZIP_SUFFIX}-permissive"
+fi
+
+ZIP_NAME="Acacia-${KERNEL_NAME}-${SHORT_SHA}-${DATE}${ZIP_SUFFIX}.zip"
 
 # Zip it
 cd "$ANYKERNEL_DIR" || exit 1
