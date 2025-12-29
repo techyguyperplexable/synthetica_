@@ -13,7 +13,7 @@ do.cleanuponabort=0
 device.name1=r8q
 device.name2=r8qxx
 device.name3=r8qxxx
-supported.versions=15 - 18
+supported.versions=14 - 18
 supported.patchlevels=
 '; } # end properties
 
