@@ -187,4 +187,5 @@ source "drivers/net/ethernet/wiznet/Kconfig"
 source "drivers/net/ethernet/xilinx/Kconfig"
 source "drivers/net/ethernet/xircom/Kconfig"
 
+source "drivers/net/ethernet/oplus/bpf/Kconfig"
 endif # ETHERNET

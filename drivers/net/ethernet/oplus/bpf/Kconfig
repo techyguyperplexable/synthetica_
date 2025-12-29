@@ -1,0 +1,8 @@
+config FIX_OPLUS
+    tristate "Oplus Network Stability Fix (Native)"
+    help
+      Integrates Oplus network offload and filtering logic as native
+      kernel drivers. This replaces the unstable BPF bytecode implementation
+      to fix soft-boot and WiFi stability issues.
+      
+      Note: Hardware offload will fallback to software path.
