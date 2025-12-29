@@ -14,18 +14,18 @@ int bpf_skfilter_drop_cell_uid(struct sk_buff *skb) {
     u32 *verdict;
 
     if (skb->protocol != htons(ETH_P_IP) && skb->protocol != htons(ETH_P_IPV6))
-        return 1; /* Allow non-IP */
+        return skb->len; /* Accept Non-IP (Full Length) */
 
     uid = bpf_get_socket_uid(skb);
-    if (uid == 0) return 1; /* Allow Root/System */
+    if (uid == 0) return skb->len; /* Accept Root/System */
 
     /* Lookup Blocklist */
     verdict = bpf_map_lookup_elem(app_drop_cell_socket_uid_limit_map, &uid);
     if (verdict && *verdict) {
-        return 0; /* Drop */
+        return 0; /* Drop (0 bytes) */
     }
 
-    return 1; /* Pass */
+    return skb->len; /* Accept (Full Length) - FIX: Was 1 */
 }
 
 /*
@@ -33,14 +33,9 @@ int bpf_skfilter_drop_cell_uid(struct sk_buff *skb) {
  * Matches "skfilter/ingress/wakeup"
  */
 int oplus_skfilter_ingress_wakeup(struct sk_buff *skb) {
-    /* * logic for detecting TCP SYN/ACK while screen is off.
-     * Prevents soft-reboots caused by modem/wlan wake locks.
+    /* * Native shim: Always return full length to allow packet processing.
+     * We don't do the actual wakeup logic here (complex to port),
+     * so we just ensure we don't drop or truncate the packet.
      */
-    u32 key = 0;
-    u64 *screen_state = bpf_map_lookup_elem(screen_state_map, &key);
-
-    /* If screen state map is empty (driver default), assume screen ON (Safe) */
-    if (!screen_state) return 1;
-
-    return 1;
+    return skb->len; 
 }
