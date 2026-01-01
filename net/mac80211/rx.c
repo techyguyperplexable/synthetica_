@@ -1100,7 +1100,7 @@ static void ieee80211_release_reorder_frames(struct ieee80211_sub_if_data *sdata
  *
  * Callers must hold tid_agg_rx->reorder_lock.
  */
-#define HT_RX_REORDER_BUF_TIMEOUT (HZ / 10)
+#define HT_RX_REORDER_BUF_TIMEOUT (HZ / 20)
 
 static void ieee80211_sta_reorder_release(struct ieee80211_sub_if_data *sdata,
 					  struct tid_ampdu_rx *tid_agg_rx,
