@@ -33,15 +33,15 @@
 #include "led.h"
 #include "fils_aead.h"
 
-#define IEEE80211_AUTH_TIMEOUT		(HZ / 5)
-#define IEEE80211_AUTH_TIMEOUT_LONG	(HZ / 2)
-#define IEEE80211_AUTH_TIMEOUT_SHORT	(HZ / 10)
+#define IEEE80211_AUTH_TIMEOUT		(HZ / 8)
+#define IEEE80211_AUTH_TIMEOUT_LONG	(HZ / 4)
+#define IEEE80211_AUTH_TIMEOUT_SHORT	(HZ / 16)
 #define IEEE80211_AUTH_TIMEOUT_SAE	(HZ * 2)
 #define IEEE80211_AUTH_MAX_TRIES	3
 #define IEEE80211_AUTH_WAIT_ASSOC	(HZ * 5)
-#define IEEE80211_ASSOC_TIMEOUT		(HZ / 5)
-#define IEEE80211_ASSOC_TIMEOUT_LONG	(HZ / 2)
-#define IEEE80211_ASSOC_TIMEOUT_SHORT	(HZ / 10)
+#define IEEE80211_ASSOC_TIMEOUT		(HZ / 8)
+#define IEEE80211_ASSOC_TIMEOUT_LONG	(HZ / 4)
+#define IEEE80211_ASSOC_TIMEOUT_SHORT	(HZ / 16)
 #define IEEE80211_ASSOC_MAX_TRIES	3
 
 static int max_nullfunc_tries = 2;
@@ -62,7 +62,7 @@ MODULE_PARM_DESC(max_probe_tries,
  * probe on beacon miss before declaring the connection lost
  * default to what we want.
  */
-static int beacon_loss_count = 7;
+static int beacon_loss_count = 10;
 module_param(beacon_loss_count, int, 0644);
 MODULE_PARM_DESC(beacon_loss_count,
 		 "Number of beacon intervals before we decide beacon was lost.");
