@@ -13,7 +13,7 @@
 #include "kgsl_trace.h"
 
 /* RGMU timeouts */
-#define RGMU_IDLE_TIMEOUT		100	/* ms */
+#define RGMU_IDLE_TIMEOUT		50	/* ms */
 #define RGMU_START_TIMEOUT		100	/* ms */
 #define GPU_START_TIMEOUT		100	/* ms */
 #define GLM_SLEEP_TIMEOUT		10	/* ms */
