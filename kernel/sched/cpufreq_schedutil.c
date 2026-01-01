@@ -12,7 +12,7 @@
 
 #include "sched.h"
 
-#define IOWAIT_BOOST_MIN	(SCHED_CAPACITY_SCALE / 8)
+#define IOWAIT_BOOST_MIN	(SCHED_CAPACITY_SCALE / 4)
 
 struct sugov_tunables {
 	struct gov_attr_set	attr_set;
@@ -789,7 +789,7 @@ static int sugov_init(struct cpufreq_policy *policy)
 		goto stop_kthread;
 	}
 
-	tunables->rate_limit_us = 500;
+	tunables->rate_limit_us = 0;
 
 	policy->governor_data = sg_policy;
 	sg_policy->tunables = tunables;
