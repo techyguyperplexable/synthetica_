@@ -27,9 +27,9 @@
 #include "driver-ops.h"
 #include "mesh.h"
 
-#define IEEE80211_PROBE_DELAY (HZ / 33)
-#define IEEE80211_CHANNEL_TIME (HZ / 33)
-#define IEEE80211_PASSIVE_CHANNEL_TIME (HZ / 9)
+#define IEEE80211_PROBE_DELAY (HZ / 50)
+#define IEEE80211_CHANNEL_TIME (HZ / 50)
+#define IEEE80211_PASSIVE_CHANNEL_TIME (HZ / 14)
 
 void ieee80211_rx_bss_put(struct ieee80211_local *local,
 			  struct ieee80211_bss *bss)
