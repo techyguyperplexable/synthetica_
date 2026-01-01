@@ -61,7 +61,7 @@ static const long temp_map_gen2_v1[THRESH_COUNT][STAGE_COUNT] = {
 	{105000, 125000, 155000},
 };
 
-#define TEMP_STAGE_HYSTERESIS		2000
+#define TEMP_STAGE_HYSTERESIS		3000
 
 #define THRESH_MIN			0
 #define THRESH_MAX			3
