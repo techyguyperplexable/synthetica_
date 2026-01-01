@@ -141,10 +141,10 @@ unsigned int sysctl_sched_cfs_bandwidth_slice		= 4000UL;
 unsigned int capacity_margin				= 1078;
 
 /*
- * ~10% margin for faster upmigration during gaming
+ * ~8% margin for faster upmigration during gaming
  */
 unsigned int sched_capacity_margin_up[NR_CPUS] = {
-	[0 ... NR_CPUS - 1] = 1138
+	[0 ... NR_CPUS - 1] = 1100
 };
 
 /*
