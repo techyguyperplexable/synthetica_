@@ -71,13 +71,13 @@ MODULE_PARM_DESC(beacon_loss_count,
  * Time the connection can be idle before we probe
  * it to see if we can still talk to the AP.
  */
-#define IEEE80211_CONNECTION_IDLE_TIME	(30 * HZ)
+#define IEEE80211_CONNECTION_IDLE_TIME	(45 * HZ)
 /*
  * Time we wait for a probe response after sending
  * a probe request because of beacon loss or for
  * checking the connection still works.
  */
-static int probe_wait_ms = 500;
+static int probe_wait_ms = 400;
 module_param(probe_wait_ms, int, 0644);
 MODULE_PARM_DESC(probe_wait_ms,
 		 "Maximum time(ms) to wait for probe response"
