@@ -187,7 +187,7 @@ int kswapd_threads_current = DEF_KSWAPD_THREADS_PER_NODE;
 /*
  * From 0 .. 200.  Higher means more swappy.
  */
-int vm_swappiness = 120;
+int vm_swappiness = 60;
 
 /*
  * Direct reclaim swappiness, values range from 0 .. 60. Higher means more swappy.
