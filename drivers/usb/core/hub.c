@@ -121,9 +121,9 @@ MODULE_PARM_DESC(use_both_schemes,
 DECLARE_RWSEM(ehci_cf_port_reset_rwsem);
 EXPORT_SYMBOL_GPL(ehci_cf_port_reset_rwsem);
 
-#define HUB_DEBOUNCE_TIMEOUT	2000
-#define HUB_DEBOUNCE_STEP	  25
-#define HUB_DEBOUNCE_STABLE	 100
+#define HUB_DEBOUNCE_TIMEOUT	1500
+#define HUB_DEBOUNCE_STEP	  20
+#define HUB_DEBOUNCE_STABLE	  75
 
 static void hub_release(struct kref *kref);
 static int usb_reset_and_verify_device(struct usb_device *udev);
