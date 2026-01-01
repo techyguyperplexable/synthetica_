@@ -32,7 +32,7 @@
  * Consider buddies to be cache hot, decreases the likeliness of a
  * cache buddy being migrated away, increases cache locality.
  */
-#define SCHED_FEAT_CACHE_HOT_BUDDY 0
+#define SCHED_FEAT_CACHE_HOT_BUDDY 1
 
 /*
  * Allow wakeup-time preemption of the current task:
@@ -108,12 +108,12 @@
  *   the EAS path for wakeup task placement. Otherwise, put
  *   those tasks through the mainline slow path.
  */
-#define SCHED_FEAT_EAS_PREFER_IDLE 0
+#define SCHED_FEAT_EAS_PREFER_IDLE 1
 
 /*
  * Request max frequency from schedutil whenever a RT task is running.
  */
-#define SCHED_FEAT_SUGOV_RT_MAX_FREQ 0
+#define SCHED_FEAT_SUGOV_RT_MAX_FREQ 1
 
 /*
  * Apply schedtune boost hold to tasks of all sched classes.
