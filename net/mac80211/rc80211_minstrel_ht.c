@@ -18,8 +18,8 @@
 #include "rc80211_minstrel.h"
 #include "rc80211_minstrel_ht.h"
 
-#define AVG_AMPDU_SIZE	16
-#define AVG_PKT_SIZE	1200
+#define AVG_AMPDU_SIZE	32
+#define AVG_PKT_SIZE	1500
 
 /* Number of bits for an average sized packet */
 #define MCS_NBITS ((AVG_PKT_SIZE * AVG_AMPDU_SIZE) << 3)
