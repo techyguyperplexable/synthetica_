@@ -41,7 +41,7 @@
 		resets = <&clock_gcc GCC_USB30_PRIM_BCR>;
 		reset-names = "core_reset";
 
-		qcom,core-clk-rate = <200000000>;
+		qcom,core-clk-rate = <240000000>;
 		qcom,core-clk-rate-hs = <66666667>;
 		qcom,num-gsi-evt-buffs = <0x3>;
 		qcom,gsi-reg-offset =
@@ -103,8 +103,8 @@
 			qcom,usb-bam-num-pipes = <4>;
 			qcom,disable-clk-gating;
 			qcom,usb-bam-override-threshold = <0x4001>;
-			qcom,usb-bam-max-mbps-highspeed = <400>;
-			qcom,usb-bam-max-mbps-superspeed = <3600>;
+			qcom,usb-bam-max-mbps-highspeed = <480>;
+			qcom,usb-bam-max-mbps-superspeed = <4800>;
 			qcom,reset-bam-on-connect;
 
 			qcom,pipe0 {
@@ -379,7 +379,7 @@
 		resets = <&clock_gcc GCC_USB30_SEC_BCR>;
 		reset-names = "core_reset";
 
-		qcom,core-clk-rate = <200000000>;
+		qcom,core-clk-rate = <240000000>;
 		qcom,core-clk-rate-hs = <66666667>;
 		qcom,num-gsi-evt-buffs = <0x3>;
 		qcom,gsi-reg-offset =
