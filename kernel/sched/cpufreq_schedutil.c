@@ -13,8 +13,8 @@
 #include "sched.h"
 
 #define IOWAIT_BOOST_MIN	(SCHED_CAPACITY_SCALE / 4)
-#define TOUCH_BOOST_DURATION_NS	80000000ULL
-#define TOUCH_BOOST_UTIL	(SCHED_CAPACITY_SCALE * 3 / 4)
+#define TOUCH_BOOST_DURATION_NS	150000000ULL
+#define TOUCH_BOOST_UTIL	(SCHED_CAPACITY_SCALE * 9 / 10)
 
 static bool touch_boost_active;
 static u64 touch_boost_end_time;
