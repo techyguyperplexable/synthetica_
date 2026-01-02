@@ -69,6 +69,28 @@ struct kmem_cache *blk_requestq_cachep;
  */
 static struct workqueue_struct *kblockd_workqueue;
 
+static bool blk_boost_sync_io = true;
+static unsigned int blk_sync_boost_depth = 4;
+
+bool blk_should_boost_request(struct request *rq)
+{
+	if (!blk_boost_sync_io)
+		return false;
+	if (rq_data_dir(rq) == READ && !(rq->cmd_flags & REQ_BACKGROUND))
+		return true;
+	if (rq->cmd_flags & REQ_SYNC)
+		return true;
+	return false;
+}
+EXPORT_SYMBOL_GPL(blk_should_boost_request);
+
+void blk_boost_queue(struct request_queue *q)
+{
+	if (q && blk_queue_nonrot(q))
+		blk_mq_run_hw_queues(q, true);
+}
+EXPORT_SYMBOL_GPL(blk_boost_queue);
+
 /**
  * blk_queue_flag_set - atomically set a queue flag
  * @flag: flag to be set
