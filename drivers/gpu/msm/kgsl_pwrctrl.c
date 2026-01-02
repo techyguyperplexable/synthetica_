@@ -26,7 +26,7 @@
 #define UPDATE_BUSY_VAL		1000000
 
 /* Number of jiffies for a full thermal cycle */
-#define TH_HZ			(HZ/8)
+#define TH_HZ			(HZ/4)
 
 #define KGSL_MAX_BUSLEVELS	20
 
