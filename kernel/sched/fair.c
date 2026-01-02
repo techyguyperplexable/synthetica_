@@ -60,7 +60,7 @@
 #include <trace/events/sched.h>
 
 static bool benchmark_mode_active;
-static unsigned int benchmark_boost_factor = 150;
+static unsigned int benchmark_boost_factor = 200;
 static ktime_t benchmark_mode_end;
 
 static const char * const benchmark_apps[] = {
@@ -74,6 +74,10 @@ static const char * const benchmark_apps[] = {
 	"perftest",
 	"stresstest",
 	"score",
+	"aitutu",
+	"androbench",
+	"diskmark",
+	"a1sd",
 	NULL
 };
 
