@@ -2769,6 +2769,24 @@ static void ttwu_queue(struct task_struct *p, int cpu, int wake_flags)
 	rq_unlock(rq, &rf);
 }
 
+static inline bool is_ui_task(struct task_struct *p)
+{
+	if (!p->mm)
+		return false;
+	if (p->prio <= MAX_RT_PRIO)
+		return true;
+	if (task_nice(p) < 0)
+		return true;
+	return false;
+}
+
+void wake_up_ui_thread(struct task_struct *p)
+{
+	if (is_ui_task(p) && !task_on_rq_queued(p))
+		try_to_wake_up(p, TASK_NORMAL, WF_SYNC, 1);
+}
+EXPORT_SYMBOL_GPL(wake_up_ui_thread);
+
 /*
  * Notes on Program-Order guarantees on SMP systems.
  *
