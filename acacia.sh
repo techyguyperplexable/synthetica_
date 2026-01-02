@@ -257,11 +257,24 @@ if [ -n "$TG_BOT_TOKEN" ]; then
 
 ${CHANGELOG}"
 
-    # Upload Zip
-    curl -s -F chat_id="$TG_CHAT_ID" -F document=@"$ZIP_NAME" -F caption="$CAPTION" "https://api.telegram.org/bot$TG_BOT_TOKEN/sendDocument" > /dev/null
+    # Upload Zip (with error checking and retry)
+    info "Uploading $ZIP_NAME to Telegram..."
+    for i in 1 2 3; do
+        UPLOAD_RESULT=$(curl -s --max-time 300 -F chat_id="$TG_CHAT_ID" -F document=@"$ZIP_NAME" -F caption="$CAPTION" "https://api.telegram.org/bot$TG_BOT_TOKEN/sendDocument")
+        if echo "$UPLOAD_RESULT" | jq -e '.ok == true' > /dev/null 2>&1; then
+            echo "Upload successful!"
+            break
+        else
+            echo "Upload attempt $i failed: $UPLOAD_RESULT"
+            [ $i -lt 3 ] && sleep 5
+        fi
+    done
     
-    # Upload Config
-    curl -s -F chat_id="$TG_CHAT_ID" -F document=@"$OUT_DIR/.config" "https://api.telegram.org/bot$TG_BOT_TOKEN/sendDocument" > /dev/null
+    # Upload Config (with error checking)
+    CONFIG_RESULT=$(curl -s --max-time 60 -F chat_id="$TG_CHAT_ID" -F document=@"$OUT_DIR/.config" "https://api.telegram.org/bot$TG_BOT_TOKEN/sendDocument")
+    if ! echo "$CONFIG_RESULT" | jq -e '.ok == true' > /dev/null 2>&1; then
+        echo "Config upload failed: $CONFIG_RESULT"
+    fi
 
     # Update Hash
     git rev-parse HEAD > "$LAST_SHA_FILE"
