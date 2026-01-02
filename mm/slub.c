@@ -130,6 +130,30 @@ static inline int kmem_cache_debug(struct kmem_cache *s)
 #endif
 }
 
+extern bool sched_benchmark_mode(void);
+extern bool sched_ui_boost_mode(void);
+
+static bool slub_benchmark_boost_enabled = true;
+static bool slub_ui_boost_enabled = true;
+
+static inline bool slub_fast_alloc_mode(void)
+{
+	if (slub_benchmark_boost_enabled && sched_benchmark_mode())
+		return true;
+	if (slub_ui_boost_enabled && sched_ui_boost_mode())
+		return true;
+	return false;
+}
+
+static inline gfp_t slub_apply_boost_flags(gfp_t flags)
+{
+	if (slub_fast_alloc_mode()) {
+		flags |= __GFP_NOWARN;
+		flags &= ~__GFP_NOFAIL;
+	}
+	return flags;
+}
+
 void *fixup_red_left(struct kmem_cache *s, void *p)
 {
 	if (kmem_cache_debug(s) && s->flags & SLAB_RED_ZONE)
