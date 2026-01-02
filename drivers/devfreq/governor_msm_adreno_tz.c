@@ -56,6 +56,9 @@ static DEFINE_SPINLOCK(tz_lock);
 static unsigned int adrenoboost = 0;
 #endif
 
+extern bool sched_benchmark_mode(void);
+static unsigned int benchmark_gpu_busy_boost = 300;
+
 static atomic_long_t suspend_time;
 static atomic_long_t suspend_start;
 static atomic_long_t acc_total, acc_relative_busy;
@@ -443,6 +446,8 @@ static int tz_get_target_freq(struct devfreq *devfreq, unsigned long *freq)
 	} else {
 		priv->bin.busy_time += stats->busy_time;
 	}
+	if (sched_benchmark_mode())
+		priv->bin.busy_time = (priv->bin.busy_time * benchmark_gpu_busy_boost) / 100;
 #else
 	priv->bin.busy_time += stats->busy_time;
 #endif
