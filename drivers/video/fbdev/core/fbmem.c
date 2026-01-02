@@ -34,8 +34,27 @@
 #include <linux/fb.h>
 #include <linux/fbcon.h>
 #include <linux/mem_encrypt.h>
+#include <linux/pm_qos.h>
 
 #include <asm/fb.h>
+
+static struct pm_qos_request fb_qos_req;
+static atomic_t fb_active_updates = ATOMIC_INIT(0);
+#define FB_QOS_LATENCY_US 100
+
+void fb_update_start(void)
+{
+	if (atomic_inc_return(&fb_active_updates) == 1)
+		pm_qos_update_request(&fb_qos_req, FB_QOS_LATENCY_US);
+}
+EXPORT_SYMBOL(fb_update_start);
+
+void fb_update_end(void)
+{
+	if (atomic_dec_and_test(&fb_active_updates))
+		pm_qos_update_request(&fb_qos_req, PM_QOS_DEFAULT_VALUE);
+}
+EXPORT_SYMBOL(fb_update_end);
 
 
     /*
@@ -75,6 +94,14 @@ static void put_fb_info(struct fb_info *fb_info)
 	if (fb_info->fbops->fb_destroy)
 		fb_info->fbops->fb_destroy(fb_info);
 }
+
+static int __init fb_qos_init(void)
+{
+	pm_qos_add_request(&fb_qos_req, PM_QOS_CPU_DMA_LATENCY,
+			   PM_QOS_DEFAULT_VALUE);
+	return 0;
+}
+late_initcall(fb_qos_init);
 
 int lock_fb_info(struct fb_info *info)
 {
