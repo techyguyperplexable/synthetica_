@@ -27,7 +27,7 @@
 #include <trace/events/power.h>
 
 extern bool sched_benchmark_mode(void);
-static unsigned int memlat_benchmark_ratio_boost = 200;
+static unsigned int memlat_benchmark_ratio_boost = 130;
 
 struct memlat_node {
 	unsigned int ratio_ceil;

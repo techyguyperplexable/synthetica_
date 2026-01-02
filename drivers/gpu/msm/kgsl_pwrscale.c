@@ -15,8 +15,8 @@
 extern bool sched_benchmark_mode(void);
 
 static bool gpu_benchmark_boost_enabled = true;
-static unsigned int gpu_benchmark_min_level = 0;
-static unsigned int gpu_benchmark_boost_percent = 50;
+static unsigned int gpu_benchmark_min_level = 1;
+static unsigned int gpu_benchmark_boost_percent = 25;
 static atomic_t gpu_benchmark_requests = ATOMIC_INIT(0);
 
 bool kgsl_benchmark_mode_active(void)
