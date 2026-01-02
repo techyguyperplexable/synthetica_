@@ -60,11 +60,11 @@
 #include <trace/events/sched.h>
 
 static bool benchmark_mode_active;
-static unsigned int benchmark_boost_factor = 140;
+static unsigned int benchmark_boost_factor = 180;
 static ktime_t benchmark_mode_end;
 
 static bool ui_boost_active;
-static unsigned int ui_boost_factor = 125;
+static unsigned int ui_boost_factor = 130;
 static ktime_t ui_boost_end;
 
 static const char * const ui_critical_apps[] = {

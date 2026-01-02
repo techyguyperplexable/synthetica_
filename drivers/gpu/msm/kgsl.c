@@ -33,7 +33,7 @@ extern bool sched_benchmark_mode(void);
 extern bool sched_ui_boost_mode(void);
 
 static bool kgsl_boost_enabled = true;
-static unsigned int kgsl_boost_bus_scale = 120;
+static unsigned int kgsl_boost_bus_scale = 140;
 
 static inline bool kgsl_should_boost(void)
 {

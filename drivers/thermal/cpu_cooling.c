@@ -39,8 +39,8 @@
 extern bool sched_benchmark_mode(void);
 
 static bool thermal_benchmark_relax = true;
-static unsigned int thermal_benchmark_max_level = 2;
-static unsigned int thermal_benchmark_temp_margin = 5000;
+static unsigned int thermal_benchmark_max_level = 1;
+static unsigned int thermal_benchmark_temp_margin = 8000;
 
 bool cpu_cooling_benchmark_active(void)
 {

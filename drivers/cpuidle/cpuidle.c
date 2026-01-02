@@ -31,7 +31,7 @@ extern bool sched_benchmark_mode(void);
 extern bool sched_ui_boost_mode(void);
 
 static bool cpuidle_boost_enabled = true;
-static unsigned int cpuidle_boost_exit_latency_limit = 500;
+static unsigned int cpuidle_boost_exit_latency_limit = 300;
 
 static inline bool cpuidle_should_limit_depth(void)
 {

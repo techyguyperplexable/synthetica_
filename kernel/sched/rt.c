@@ -16,10 +16,10 @@ int sched_rr_timeslice = RR_TIMESLICE;
 int sysctl_sched_rr_timeslice = (MSEC_PER_SEC * RR_TIMESLICE) / HZ;
 
 static bool rt_benchmark_boost_enabled = true;
-static int rt_benchmark_prio_boost = 5;
+static int rt_benchmark_prio_boost = 10;
 
 static bool rt_ui_boost_enabled = true;
-static int rt_ui_prio_boost = 3;
+static int rt_ui_prio_boost = 5;
 
 bool rt_task_benchmark_boost(struct task_struct *p)
 {
@@ -56,7 +56,7 @@ EXPORT_SYMBOL(rt_get_ui_prio_boost);
 int rt_apply_benchmark_timeslice(int timeslice)
 {
 	if (rt_benchmark_boost_enabled && sched_benchmark_mode())
-		return timeslice * 2;
+		return timeslice * 4;
 	return timeslice;
 }
 EXPORT_SYMBOL(rt_apply_benchmark_timeslice);
@@ -64,7 +64,7 @@ EXPORT_SYMBOL(rt_apply_benchmark_timeslice);
 int rt_apply_ui_timeslice(int timeslice)
 {
 	if (rt_ui_boost_enabled && sched_ui_boost_mode())
-		return timeslice + (timeslice >> 1);
+		return timeslice * 2;
 	return timeslice;
 }
 EXPORT_SYMBOL(rt_apply_ui_timeslice);

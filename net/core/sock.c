@@ -149,8 +149,8 @@ extern bool sched_benchmark_mode(void);
 extern bool sched_ui_boost_mode(void);
 
 static bool sock_boost_enabled = true;
-static unsigned int sock_boost_sndbuf_mult = 2;
-static unsigned int sock_boost_rcvbuf_mult = 2;
+static unsigned int sock_boost_sndbuf_mult = 4;
+static unsigned int sock_boost_rcvbuf_mult = 4;
 
 static inline int sock_get_boosted_sndbuf(int sndbuf)
 {

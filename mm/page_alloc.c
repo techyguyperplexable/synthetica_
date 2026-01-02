@@ -82,7 +82,7 @@ extern bool sched_benchmark_mode(void);
 extern bool sched_ui_boost_mode(void);
 
 static bool alloc_benchmark_boost_enabled = true;
-static unsigned int alloc_benchmark_batch_mult = 2;
+static unsigned int alloc_benchmark_batch_mult = 4;
 
 static bool alloc_ui_boost_enabled = true;
 static unsigned int alloc_ui_order_boost = 1;

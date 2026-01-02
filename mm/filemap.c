@@ -44,7 +44,7 @@ extern bool sched_benchmark_mode(void);
 extern bool sched_ui_boost_mode(void);
 
 static bool filemap_boost_enabled = true;
-static unsigned int filemap_readahead_boost_mult = 2;
+static unsigned int filemap_readahead_boost_mult = 4;
 
 static inline unsigned long get_boosted_readahead(unsigned long ra_pages)
 {

@@ -51,7 +51,7 @@ extern bool sched_benchmark_mode(void);
 extern bool sched_ui_boost_mode(void);
 
 static bool blk_boost_enabled = true;
-static unsigned int blk_boost_nr_requests_mult = 2;
+static unsigned int blk_boost_nr_requests_mult = 4;
 
 static inline unsigned int get_boosted_nr_requests(unsigned int nr)
 {

@@ -57,7 +57,7 @@ static unsigned int adrenoboost = 0;
 #endif
 
 extern bool sched_benchmark_mode(void);
-static unsigned int benchmark_gpu_busy_boost = 150;
+static unsigned int benchmark_gpu_busy_boost = 200;
 
 static atomic_long_t suspend_time;
 static atomic_long_t suspend_start;
