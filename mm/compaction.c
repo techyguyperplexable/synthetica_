@@ -25,6 +25,28 @@
 #include <linux/psi.h>
 #include "internal.h"
 
+extern bool sched_benchmark_mode(void);
+extern bool sched_ui_boost_mode(void);
+
+static bool compaction_boost_enabled = true;
+static unsigned int compaction_boost_order_threshold = 3;
+
+static inline bool should_defer_compaction(void)
+{
+	if (!compaction_boost_enabled)
+		return false;
+	if (sched_benchmark_mode() || sched_ui_boost_mode())
+		return true;
+	return false;
+}
+
+static inline unsigned int get_compaction_order_threshold(void)
+{
+	if (should_defer_compaction())
+		return compaction_boost_order_threshold;
+	return 0;
+}
+
 #ifdef CONFIG_COMPACTION
 static inline void count_compact_event(enum vm_event_item item)
 {
