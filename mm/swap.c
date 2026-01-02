@@ -41,6 +41,19 @@
 #define CREATE_TRACE_POINTS
 #include <trace/events/pagemap.h>
 
+extern bool sched_benchmark_mode(void);
+extern bool sched_ui_boost_mode(void);
+
+static bool swap_boost_enabled = true;
+static unsigned int swap_boost_cluster_mult = 2;
+
+static inline int get_boosted_page_cluster(void)
+{
+	if (swap_boost_enabled && (sched_benchmark_mode() || sched_ui_boost_mode()))
+		return page_cluster * swap_boost_cluster_mult;
+	return page_cluster;
+}
+
 /* How many pages do we try to swap or page in/out together? */
 int page_cluster;
 
