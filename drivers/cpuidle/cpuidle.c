@@ -27,6 +27,24 @@
 
 #include "cpuidle.h"
 
+extern bool sched_benchmark_mode(void);
+extern bool sched_ui_boost_mode(void);
+
+static bool cpuidle_boost_enabled = true;
+static unsigned int cpuidle_boost_exit_latency_limit = 100;
+
+static inline bool cpuidle_should_limit_depth(void)
+{
+	return cpuidle_boost_enabled && (sched_benchmark_mode() || sched_ui_boost_mode());
+}
+
+static inline unsigned int cpuidle_get_latency_limit(void)
+{
+	if (cpuidle_should_limit_depth())
+		return cpuidle_boost_exit_latency_limit;
+	return UINT_MAX;
+}
+
 DEFINE_PER_CPU(struct cpuidle_device *, cpuidle_devices);
 DEFINE_PER_CPU(struct cpuidle_device, cpuidle_dev);
 EXPORT_SYMBOL_GPL(cpuidle_dev);
