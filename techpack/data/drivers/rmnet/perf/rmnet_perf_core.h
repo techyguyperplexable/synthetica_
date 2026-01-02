@@ -17,7 +17,7 @@
 #ifndef _RMNET_PERF_CORE_H_
 #define _RMNET_PERF_CORE_H_
 
-#define RMNET_PERF_NUM_64K_BUFFS              50
+#define RMNET_PERF_NUM_64K_BUFFS              100
 #define RMNET_PERF_CORE_RECYCLE_SKB_SIZE    65600//33000//32768//65600
 
 struct rmnet_perf {
