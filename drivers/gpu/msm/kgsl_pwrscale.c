@@ -12,6 +12,56 @@
 #include "kgsl_pwrscale.h"
 #include "kgsl_trace.h"
 
+extern bool sched_benchmark_mode(void);
+
+static bool gpu_benchmark_boost_enabled = true;
+static unsigned int gpu_benchmark_min_level = 0;
+static unsigned int gpu_benchmark_boost_percent = 30;
+static atomic_t gpu_benchmark_requests = ATOMIC_INIT(0);
+
+bool kgsl_benchmark_mode_active(void)
+{
+	return gpu_benchmark_boost_enabled && 
+	       (sched_benchmark_mode() || atomic_read(&gpu_benchmark_requests) > 0);
+}
+EXPORT_SYMBOL(kgsl_benchmark_mode_active);
+
+void kgsl_benchmark_request_boost(void)
+{
+	if (gpu_benchmark_boost_enabled)
+		atomic_inc(&gpu_benchmark_requests);
+}
+EXPORT_SYMBOL(kgsl_benchmark_request_boost);
+
+void kgsl_benchmark_release_boost(void)
+{
+	atomic_dec_if_positive(&gpu_benchmark_requests);
+}
+EXPORT_SYMBOL(kgsl_benchmark_release_boost);
+
+unsigned int kgsl_get_benchmark_min_pwrlevel(struct kgsl_device *device)
+{
+	struct kgsl_pwrctrl *pwr = &device->pwrctrl;
+
+	if (!kgsl_benchmark_mode_active())
+		return pwr->default_pwrlevel;
+
+	return min_t(unsigned int, gpu_benchmark_min_level, pwr->num_pwrlevels - 1);
+}
+EXPORT_SYMBOL(kgsl_get_benchmark_min_pwrlevel);
+
+unsigned long kgsl_apply_benchmark_boost(unsigned long freq, unsigned long max_freq)
+{
+	unsigned long boosted;
+
+	if (!kgsl_benchmark_mode_active())
+		return freq;
+
+	boosted = freq + (freq * gpu_benchmark_boost_percent / 100);
+	return min(boosted, max_freq);
+}
+EXPORT_SYMBOL(kgsl_apply_benchmark_boost);
+
 /**
  * struct kgsl_midframe_info - midframe power stats sampling info
  * @timer - midframe sampling timer
