@@ -46,19 +46,19 @@
 #define THRESH_COUNT			4
 #define STAGE_COUNT			3
 
-/* Over-temperature trip point values in mC */
+/* Over-temperature trip point values in mC - increased for higher thermal headroom */
 static const long temp_map_gen1[THRESH_COUNT][STAGE_COUNT] = {
-	{105000, 125000, 145000},
-	{110000, 130000, 150000},
 	{115000, 135000, 155000},
 	{120000, 140000, 160000},
+	{125000, 145000, 165000},
+	{130000, 150000, 170000},
 };
 
 static const long temp_map_gen2_v1[THRESH_COUNT][STAGE_COUNT] = {
-	{ 90000, 110000, 140000},
-	{ 95000, 115000, 145000},
 	{100000, 120000, 150000},
 	{105000, 125000, 155000},
+	{110000, 130000, 160000},
+	{115000, 135000, 165000},
 };
 
 #define TEMP_STAGE_HYSTERESIS		3000
