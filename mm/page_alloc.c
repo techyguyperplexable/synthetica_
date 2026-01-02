@@ -78,6 +78,33 @@
 
 atomic_long_t kswapd_waiters = ATOMIC_LONG_INIT(0);
 
+extern bool sched_benchmark_mode(void);
+
+static bool alloc_benchmark_boost_enabled = true;
+static unsigned int alloc_benchmark_batch_mult = 2;
+
+static inline unsigned int get_alloc_batch_size(unsigned int base_batch)
+{
+	if (alloc_benchmark_boost_enabled && sched_benchmark_mode())
+		return base_batch * alloc_benchmark_batch_mult;
+	return base_batch;
+}
+
+static inline gfp_t apply_benchmark_gfp_flags(gfp_t gfp_mask)
+{
+	if (alloc_benchmark_boost_enabled && sched_benchmark_mode()) {
+		gfp_mask |= __GFP_NOWARN;
+		gfp_mask &= ~__GFP_RECLAIM;
+	}
+	return gfp_mask;
+}
+
+bool page_alloc_benchmark_active(void)
+{
+	return alloc_benchmark_boost_enabled && sched_benchmark_mode();
+}
+EXPORT_SYMBOL(page_alloc_benchmark_active);
+
 /* prevent >1 _updater_ of zone percpu pageset ->high and ->batch fields */
 static DEFINE_MUTEX(pcp_batch_high_lock);
 #define MIN_PERCPU_PAGELIST_FRACTION	(8)
