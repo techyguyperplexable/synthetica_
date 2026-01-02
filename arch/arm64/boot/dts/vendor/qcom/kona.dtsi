@@ -3763,18 +3763,18 @@
 		qcom,msm-bus,vectors-KBps =
 		/* no vote */
 		<MSM_BUS_MASTER_PCIE MSM_BUS_SLAVE_FIRST 0 0>,
-		/* idle: 0-18 Mbps, ddr freq: 451.2 MHz */
-		<MSM_BUS_MASTER_PCIE MSM_BUS_SLAVE_FIRST 2250 1600000>,
-		/* low: 18-60 Mbps, ddr freq: 451.2 MHz*/
-		<MSM_BUS_MASTER_PCIE MSM_BUS_SLAVE_FIRST 7500 1600000>,
-		/* medium: 60-240 Mbps, ddr freq: 451.2 MHz */
-		<MSM_BUS_MASTER_PCIE MSM_BUS_SLAVE_FIRST 30000 1804800>,
-		/* high: 240 - 800 Mbps, ddr freq: 451.2 MHz */
-		<MSM_BUS_MASTER_PCIE MSM_BUS_SLAVE_FIRST 100000 1804800>,
-		/* very high: 800 - 1400 Mbps, ddr freq: 1555.2 MHz */
-		<MSM_BUS_MASTER_PCIE MSM_BUS_SLAVE_FIRST 175000 6220800>,
-		/* low (latency critical): 18 - 60 Mbps, ddr freq: 547.2 MHz */
-		<MSM_BUS_MASTER_PCIE MSM_BUS_SLAVE_FIRST 7500 2188800>;
+		/* idle: 0-18 Mbps, ddr freq: 547.2 MHz */
+		<MSM_BUS_MASTER_PCIE MSM_BUS_SLAVE_FIRST 2250 2188800>,
+		/* low: 18-60 Mbps, ddr freq: 547.2 MHz */
+		<MSM_BUS_MASTER_PCIE MSM_BUS_SLAVE_FIRST 7500 2188800>,
+		/* medium: 60-240 Mbps, ddr freq: 768 MHz */
+		<MSM_BUS_MASTER_PCIE MSM_BUS_SLAVE_FIRST 30000 3072000>,
+		/* high: 240 - 800 Mbps, ddr freq: 1017.6 MHz */
+		<MSM_BUS_MASTER_PCIE MSM_BUS_SLAVE_FIRST 100000 4070400>,
+		/* very high: 800 - 2400 Mbps, ddr freq: 1804.8 MHz */
+		<MSM_BUS_MASTER_PCIE MSM_BUS_SLAVE_FIRST 300000 7219200>,
+		/* low (latency critical): 18 - 60 Mbps, ddr freq: 768 MHz */
+		<MSM_BUS_MASTER_PCIE MSM_BUS_SLAVE_FIRST 7500 3072000>;
 
 		vdd-wlan-aon-supply = <&pm8150_s6>;
 		qcom,vdd-wlan-aon-config = <950000 950000 0 0 1>;
