@@ -51,10 +51,27 @@
 #include <linux/bug.h>
 #include <linux/delay.h>
 #include <linux/kvm_para.h>
+#include <linux/pm_qos.h>
 
 #include "workqueue_internal.h"
 
 #include <linux/sec_debug.h>
+
+static struct pm_qos_request wq_pm_qos_req;
+static atomic_t wq_active_count = ATOMIC_INIT(0);
+#define WQ_QOS_LATENCY_US 150
+
+void wq_boost_activate(void)
+{
+	if (atomic_inc_return(&wq_active_count) == 1)
+		pm_qos_update_request(&wq_pm_qos_req, WQ_QOS_LATENCY_US);
+}
+
+void wq_boost_deactivate(void)
+{
+	if (atomic_dec_and_test(&wq_active_count))
+		pm_qos_update_request(&wq_pm_qos_req, PM_QOS_DEFAULT_VALUE);
+}
 
 enum {
 	/*
@@ -5910,6 +5927,9 @@ int __init workqueue_init(void)
 
 	wq_online = true;
 	wq_watchdog_init();
+
+	pm_qos_add_request(&wq_pm_qos_req, PM_QOS_CPU_DMA_LATENCY,
+			   PM_QOS_DEFAULT_VALUE);
 
 	return 0;
 }
