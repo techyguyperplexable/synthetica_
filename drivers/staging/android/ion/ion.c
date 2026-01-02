@@ -69,6 +69,11 @@ bool ion_buffer_cached(struct ion_buffer *buffer)
 	return !!(buffer->flags & ION_FLAG_CACHED);
 }
 
+bool ion_buffer_hlos_accessible(struct ion_buffer *buffer)
+{
+	return hlos_accessible_buffer(buffer);
+}
+
 /* this function should only be called while dev->lock is held */
 static void ion_buffer_add(struct ion_device *dev,
 			   struct ion_buffer *buffer)
@@ -269,6 +274,11 @@ static void free_duped_table(struct sg_table *table)
 {
 	sg_free_table(table);
 	kfree(table);
+}
+
+static inline size_t ion_buffer_size(struct ion_buffer *buffer)
+{
+	return buffer->size;
 }
 
 struct ion_dma_buf_attachment {

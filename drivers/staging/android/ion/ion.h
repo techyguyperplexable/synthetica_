@@ -274,6 +274,14 @@ struct ion_heap {
 bool ion_buffer_cached(struct ion_buffer *buffer);
 
 /**
+ * ion_buffer_hlos_accessible - check if buffer is hlos accessible
+ * @buffer:		buffer
+ *
+ * indicates whether this ion buffer is accessible by hlos
+ */
+bool ion_buffer_hlos_accessible(struct ion_buffer *buffer);
+
+/**
  * ion_device_create - allocates and returns an ion device
  *
  * returns a valid device or -PTR_ERR
