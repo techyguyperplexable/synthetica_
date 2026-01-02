@@ -153,14 +153,14 @@ void tcp_time_wait(struct sock *sk, int state, int timeo);
 						 */
 
 /* Number of full MSS to receive before Acking RFC2581 */
-#define TCP_DELACK_SEG          1
+#define TCP_DELACK_SEG          12
 
 #define TCP_RESOURCE_PROBE_INTERVAL ((unsigned)(HZ/2U)) /* Maximal interval between probes
 					                 * for local resources.
 					                 */
-#define TCP_KEEPALIVE_TIME	(30*60*HZ)	/* 30 minutes */
-#define TCP_KEEPALIVE_PROBES	6		/* Max of 6 keepalive probes	*/
-#define TCP_KEEPALIVE_INTVL	(15*HZ)
+#define TCP_KEEPALIVE_TIME	(120*60*HZ)	/* 120 minutes */
+#define TCP_KEEPALIVE_PROBES	9		/* Max of 9 keepalive probes	*/
+#define TCP_KEEPALIVE_INTVL	(75*HZ)
 
 #define MAX_TCP_KEEPIDLE	32767
 #define MAX_TCP_KEEPINTVL	32767
