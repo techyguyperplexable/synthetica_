@@ -119,6 +119,7 @@
 #include <linux/static_key.h>
 #include <linux/memcontrol.h>
 #include <linux/prefetch.h>
+#include <linux/pm_qos.h>
 
 #include <linux/uaccess.h>
 
@@ -150,6 +151,32 @@
 #include <net/ncm.h>
 // SEC_PRODUCT_FEATURE_KNOX_SUPPORT_NPA }
 #endif
+
+static struct pm_qos_request sock_latency_qos;
+static atomic_t sock_busy_count = ATOMIC_INIT(0);
+#define SOCK_QOS_LATENCY_US 200
+
+void sock_activity_start(void)
+{
+	if (atomic_inc_return(&sock_busy_count) == 1)
+		pm_qos_update_request(&sock_latency_qos, SOCK_QOS_LATENCY_US);
+}
+EXPORT_SYMBOL(sock_activity_start);
+
+void sock_activity_end(void)
+{
+	if (atomic_dec_and_test(&sock_busy_count))
+		pm_qos_update_request(&sock_latency_qos, PM_QOS_DEFAULT_VALUE);
+}
+EXPORT_SYMBOL(sock_activity_end);
+
+static int __init sock_qos_init(void)
+{
+	pm_qos_add_request(&sock_latency_qos, PM_QOS_CPU_DMA_LATENCY,
+			   PM_QOS_DEFAULT_VALUE);
+	return 0;
+}
+late_initcall(sock_qos_init);
 
 static DEFINE_MUTEX(proto_list_mutex);
 static LIST_HEAD(proto_list);
