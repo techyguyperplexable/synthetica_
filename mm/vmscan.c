@@ -187,12 +187,12 @@ int kswapd_threads_current = DEF_KSWAPD_THREADS_PER_NODE;
 /*
  * From 0 .. 200.  Higher means more swappy.
  */
-int vm_swappiness = 60;
+int vm_swappiness = 100;
 
 /*
  * Direct reclaim swappiness, values range from 0 .. 60. Higher means more swappy.
  */
-int direct_vm_swappiness = 60;
+int direct_vm_swappiness = 40;
 
 /*
  * The total number of pages which are beyond the high watermark within all
