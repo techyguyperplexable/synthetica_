@@ -24,6 +24,23 @@
 
 #include "internals.h"
 
+extern bool sched_benchmark_mode(void);
+extern bool sched_ui_boost_mode(void);
+
+static bool irq_boost_enabled = true;
+
+static inline bool irq_should_boost_affinity(void)
+{
+	return irq_boost_enabled && (sched_benchmark_mode() || sched_ui_boost_mode());
+}
+
+static inline int irq_get_boost_prio(int prio)
+{
+	if (irq_should_boost_affinity() && prio > MAX_RT_PRIO / 2)
+		return MAX_RT_PRIO / 2;
+	return prio;
+}
+
 struct irq_desc_list {
 	struct list_head list;
 	struct irq_desc *desc;
