@@ -16,8 +16,18 @@
 #define TOUCH_BOOST_DURATION_NS	150000000ULL
 #define TOUCH_BOOST_UTIL	(SCHED_CAPACITY_SCALE * 9 / 10)
 
+#define UI_BOOST_DURATION_NS	100000000ULL
+#define UI_BOOST_UTIL		(SCHED_CAPACITY_SCALE * 85 / 100)
+#define BENCHMARK_BOOST_UTIL	SCHED_CAPACITY_SCALE
+
 static bool touch_boost_active;
 static u64 touch_boost_end_time;
+
+static bool ui_freq_boost_active;
+static u64 ui_freq_boost_end_time;
+
+static bool benchmark_freq_boost_active;
+static u64 benchmark_freq_boost_end_time;
 
 void sugov_touch_boost_kick(void)
 {
@@ -25,6 +35,20 @@ void sugov_touch_boost_kick(void)
 	touch_boost_end_time = ktime_get_ns() + TOUCH_BOOST_DURATION_NS;
 }
 EXPORT_SYMBOL_GPL(sugov_touch_boost_kick);
+
+void sugov_ui_boost_kick(void)
+{
+	ui_freq_boost_active = true;
+	ui_freq_boost_end_time = ktime_get_ns() + UI_BOOST_DURATION_NS;
+}
+EXPORT_SYMBOL_GPL(sugov_ui_boost_kick);
+
+void sugov_benchmark_boost_kick(unsigned int duration_ms)
+{
+	benchmark_freq_boost_active = true;
+	benchmark_freq_boost_end_time = ktime_get_ns() + (u64)duration_ms * NSEC_PER_MSEC;
+}
+EXPORT_SYMBOL_GPL(sugov_benchmark_boost_kick);
 
 static inline bool sugov_touch_boost_pending(void)
 {
@@ -37,10 +61,54 @@ static inline bool sugov_touch_boost_pending(void)
 	return true;
 }
 
+static inline bool sugov_ui_boost_pending(void)
+{
+	if (!ui_freq_boost_active)
+		return false;
+	if (ktime_get_ns() > ui_freq_boost_end_time) {
+		ui_freq_boost_active = false;
+		return false;
+	}
+	return true;
+}
+
+static inline bool sugov_benchmark_boost_pending(void)
+{
+	if (!benchmark_freq_boost_active)
+		return false;
+	if (ktime_get_ns() > benchmark_freq_boost_end_time) {
+		benchmark_freq_boost_active = false;
+		return false;
+	}
+	return true;
+}
+
 static inline unsigned long sugov_apply_touch_boost(unsigned long util)
 {
 	if (sugov_touch_boost_pending() && util < TOUCH_BOOST_UTIL)
 		return TOUCH_BOOST_UTIL;
+	return util;
+}
+
+static inline unsigned long sugov_apply_ui_boost(unsigned long util)
+{
+	if (sugov_ui_boost_pending() && util < UI_BOOST_UTIL)
+		return UI_BOOST_UTIL;
+	return util;
+}
+
+static inline unsigned long sugov_apply_benchmark_boost(unsigned long util)
+{
+	if (sugov_benchmark_boost_pending())
+		return BENCHMARK_BOOST_UTIL;
+	return util;
+}
+
+static inline unsigned long sugov_apply_all_boosts(unsigned long util)
+{
+	util = sugov_apply_touch_boost(util);
+	util = sugov_apply_ui_boost(util);
+	util = sugov_apply_benchmark_boost(util);
 	return util;
 }
 
