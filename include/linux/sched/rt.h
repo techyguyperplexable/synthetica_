@@ -62,6 +62,6 @@ extern void normalize_rt_tasks(void);
  * default timeslice is 4 jiffies (used only for SCHED_RR tasks).
  * Timeslices get refilled after they expire.
  */
-#define RR_TIMESLICE		(4)
+#define RR_TIMESLICE		(10)
 
 #endif /* _LINUX_SCHED_RT_H */
