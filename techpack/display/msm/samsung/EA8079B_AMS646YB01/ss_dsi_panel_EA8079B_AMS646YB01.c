@@ -388,7 +388,7 @@ static struct dsi_panel_cmd_set *__ss_vrr(struct samsung_display_driver_data *vd
 	cur_hs = vrr->cur_sot_hs_mode;
 
 	// Freq Setting
-	if (vdd->vrr.adjusted_refresh_rate == 120)
+	if (vdd->vrr.adjusted_refresh_rate >= 120)
 		vrr_cmds->cmds[1].msg.tx_buf[1] = 0x10;
 	else
 		vrr_cmds->cmds[1].msg.tx_buf[1] = 0x00;

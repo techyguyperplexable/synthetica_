@@ -205,10 +205,13 @@ static struct dsi_panel_cmd_set *ss_vrr_hbm(struct samsung_display_driver_data *
 
 #define FRAME_WAIT_60FPS (34)		/* HBM   : 17 => 34 */
 #define FRAME_WAIT_120FPS (17)		/* HBM   :  9 => 17 */
+#define FRAME_WAIT_144FPS (14)		/* HBM   : 144Hz overclock */
 #define NORMAL_HBM_DELAY_60FPS (6)	/* HBM   : 16 => 6  */
 #define NORMAL_HBM_DELAY_120FPS (8)	/* HBM   :  9 => 8  */
+#define NORMAL_HBM_DELAY_144FPS (7)	/* HBM   : 144Hz overclock */
 #define HBM_NORMAL_DELAY_60FPS (8)	/* NORMAL: 16 => 8  */
 #define HBM_NORMAL_DELAY_120FPS (8)	/* NORMAL:  9 => 8  */
+#define HBM_NORMAL_DELAY_144FPS (7)	/* NORMAL: 144Hz overclock */
 
 static bool last_br_hbm;
 

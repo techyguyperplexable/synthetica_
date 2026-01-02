@@ -705,7 +705,7 @@ static int table_parsing_data_S6E3HAB_AMB687TZ01(struct samsung_display_driver_d
 
 	if (br_tbl->refresh_rate == 60 && br_tbl->is_sot_hs_mode) {
 		normal_table = (struct normal_table_format *)table_normal_br_info_60hs;
-	} else if (br_tbl->refresh_rate == 120 || br_tbl->refresh_rate == 96) {
+	} else if (br_tbl->refresh_rate >= 120 || br_tbl->refresh_rate == 96) {
 		normal_table = (struct normal_table_format *)table_normal_br_info_120hs;
 	}
 

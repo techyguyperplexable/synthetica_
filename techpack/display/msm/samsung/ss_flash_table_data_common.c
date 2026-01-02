@@ -954,7 +954,7 @@ static void br_basic_register_read(struct samsung_display_driver_data *vdd,
 	ss_panel_data_read(vdd, RX_HBM, br_tbl->hbm_max_gamma, LEVEL1_KEY);
 
 	/* overwrite some values from default (60 normal) read values */
-	if (br_tbl->refresh_rate == 120 || br_tbl->refresh_rate == 96) { /* 120/96hz */
+	if (br_tbl->refresh_rate >= 120 || br_tbl->refresh_rate == 96) { /* 120/96hz */
 		/* hbm gamma[0~30]: C9h 75th~105th, hbm gamma[31~33] B3h 37th~39th */
 		ss_panel_data_read(vdd, RX_HBM2, br_tbl->hbm_max_gamma, LEVEL1_KEY);
 

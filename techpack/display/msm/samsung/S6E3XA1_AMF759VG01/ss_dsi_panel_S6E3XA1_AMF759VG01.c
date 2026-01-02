@@ -2066,7 +2066,7 @@ static bool ss_check_support_mode(struct samsung_display_driver_data *vdd, enum 
 	switch (mode) {
 
 	case CHECK_SUPPORT_BRIGHTDOT:
-		if (!(cur_rr == 120 && cur_hs)) {
+		if (!(cur_rr >= 120 && cur_hs)) {
 			is_support = false;
 			LCD_ERR("BRIGHT DOT fail: supported on 120HS(cur: %d%s)\n",
 					cur_rr, cur_hs ? "HS" : "NS");

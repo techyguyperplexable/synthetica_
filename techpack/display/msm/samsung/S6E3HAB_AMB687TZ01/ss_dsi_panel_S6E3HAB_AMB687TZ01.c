@@ -509,7 +509,7 @@ static int ss_smart_dimming_init(struct samsung_display_driver_data *vdd,
 	ss_panel_data_read(vdd, RX_HBM, sconf->hbm_payload, LEVEL1_KEY);	/* 60 NR B3h 6th ~ 39th */
 
 	/* overwrite some values from default (60 normal) read values */
-	if (br_tbl->refresh_rate == 120 || br_tbl->refresh_rate == 96) {
+	if (br_tbl->refresh_rate >= 120 || br_tbl->refresh_rate == 96) {
 		/* hbm gamma[0~30]: C9h 75th~105th, hbm gamma[31~33] B3h 37th~39th */
 		ss_panel_data_read(vdd, RX_HBM2, sconf->hbm_payload, LEVEL1_KEY); /* C9h 75th~105th */
 	} else if (br_tbl->refresh_rate == 60 && br_tbl->is_sot_hs_mode) {

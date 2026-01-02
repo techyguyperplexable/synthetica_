@@ -2906,7 +2906,7 @@
 
 				qcom,mdss-dsi-panel-framerate = <60>;
 				qcom,mdss-mdp-transfer-time-us = <15866>;
-				qcom,mdss-dsi-panel-clockrate = <1157000000>;
+				qcom,mdss-dsi-panel-clockrate = <1388400000>;
 				qcom,mdss-dsi-panel-phy-timings = [00 26 0A 0A 27 25 0A 0A 07 02 04 00 1F 1A];
 				qcom,mdss-dsi-t-clk-post = <0x1A>;
 				qcom,mdss-dsi-t-clk-pre = <0x1F>;
@@ -3101,7 +3101,7 @@
 
 				qcom,mdss-dsi-panel-framerate = <48>;
 				qcom,mdss-mdp-transfer-time-us = <15866>;
-				qcom,mdss-dsi-panel-clockrate = <1157000000>;
+				qcom,mdss-dsi-panel-clockrate = <1388400000>;
 				qcom,mdss-dsi-panel-phy-timings = [00 26 0A 0A 27 25 0A 0A 07 02 04 00 1F 1A];
 				qcom,mdss-dsi-t-clk-post = <0x1A>;
 				qcom,mdss-dsi-t-clk-pre = <0x1F>;
@@ -3262,7 +3262,7 @@
 
 				qcom,mdss-dsi-panel-framerate = <48>;
 				qcom,mdss-mdp-transfer-time-us = <15866>;
-				qcom,mdss-dsi-panel-clockrate = <1157000000>;
+				qcom,mdss-dsi-panel-clockrate = <1388400000>;
 				qcom,mdss-dsi-panel-phy-timings = [00 26 0A 0A 27 25 0A 0A 07 02 04 00 1F 1A];
 				qcom,mdss-dsi-t-clk-post = <0x1A>;
 				qcom,mdss-dsi-t-clk-pre = <0x1F>;
@@ -3425,7 +3425,7 @@
 				 * even it lowers MDP clock as 60NM mode.
 				 */
 				qcom,mdss-mdp-transfer-time-us = <15866>; // 60hz nm
-				qcom,mdss-dsi-panel-clockrate = <1157000000>;
+				qcom,mdss-dsi-panel-clockrate = <1388400000>;
 				qcom,mdss-dsi-panel-phy-timings = [00 26 0A 0A 27 25 0A 0A 07 02 04 00 1F 1A];
 				qcom,mdss-dsi-t-clk-post = <0x1A>;
 				qcom,mdss-dsi-t-clk-pre = <0x1F>;
@@ -3615,7 +3615,7 @@
 
 				qcom,mdss-dsi-panel-framerate = <60>;
 				qcom,mdss-mdp-transfer-time-us = <15866>;
-				qcom,mdss-dsi-panel-clockrate = <1157000000>;
+				qcom,mdss-dsi-panel-clockrate = <1388400000>;
 				qcom,mdss-dsi-panel-phy-timings = [00 26 0A 0A 27 25 0A 0A 07 02 04 00 1F 1A];
 				qcom,mdss-dsi-t-clk-post = <0x1A>;
 				qcom,mdss-dsi-t-clk-pre = <0x1F>;
@@ -3805,8 +3805,8 @@
 
 				samsung,mdss-dsi-sot-hs-mode;
 				qcom,mdss-dsi-panel-framerate = <96>;
-				qcom,mdss-mdp-transfer-time-us = <7533>;
-				qcom,mdss-dsi-panel-clockrate = <1157000000>;
+				qcom,mdss-mdp-transfer-time-us = <6278>;
+				qcom,mdss-dsi-panel-clockrate = <1388400000>;
 				qcom,mdss-dsi-panel-phy-timings = [00 23 09 09 26 24 09 09 06 02 04 00 1D 19];
 				qcom,mdss-dsi-t-clk-post = <0x19>;
 				qcom,mdss-dsi-t-clk-pre = <0x1D>;
@@ -3967,9 +3967,9 @@
 				qcom,mdss-dsi-v-front-porch = <551>;
 
 				samsung,mdss-dsi-sot-hs-mode;
-				qcom,mdss-dsi-panel-framerate = <120>;
-				qcom,mdss-mdp-transfer-time-us = <7533>;
-				qcom,mdss-dsi-panel-clockrate = <1157000000>;
+				qcom,mdss-dsi-panel-framerate = <144>;
+				qcom,mdss-mdp-transfer-time-us = <6278>;
+				qcom,mdss-dsi-panel-clockrate = <1388400000>;
 				qcom,mdss-dsi-panel-phy-timings = [00 26 0A 0A 27 25 0A 0A 07 02 04 00 1F 1A];
 				qcom,mdss-dsi-t-clk-post = <0x1A>;
 				qcom,mdss-dsi-t-clk-pre = <0x1F>;
@@ -4134,7 +4134,7 @@
 
 				qcom,mdss-dsi-panel-framerate = <48>;
 				qcom,mdss-mdp-transfer-time-us = <15866>;
-				qcom,mdss-dsi-panel-clockrate = <1157000000>;
+				qcom,mdss-dsi-panel-clockrate = <1388400000>;
 				qcom,mdss-dsi-panel-phy-timings = [00 26 0A 0A 27 25 0A 0A 07 02 04 00 1F 1A];
 				qcom,mdss-dsi-t-clk-post = <0x1A>;
 				qcom,mdss-dsi-t-clk-pre = <0x1F>;
@@ -4297,7 +4297,7 @@
 				 * even it lowers MDP clock as 60NM mode.
 				 */
 				qcom,mdss-mdp-transfer-time-us = <15866>; // 60hz nm
-				qcom,mdss-dsi-panel-clockrate = <1157000000>;
+				qcom,mdss-dsi-panel-clockrate = <1388400000>;
 				qcom,mdss-dsi-panel-phy-timings = [00 26 0A 0A 27 25 0A 0A 07 02 04 00 1F 1A];
 				qcom,mdss-dsi-t-clk-post = <0x1A>;
 				qcom,mdss-dsi-t-clk-pre = <0x1F>;
@@ -4487,7 +4487,7 @@
 
 				qcom,mdss-dsi-panel-framerate = <60>;
 				qcom,mdss-mdp-transfer-time-us = <15866>;
-				qcom,mdss-dsi-panel-clockrate = <1157000000>;
+				qcom,mdss-dsi-panel-clockrate = <1388400000>;
 				qcom,mdss-dsi-panel-phy-timings = [00 26 0A 0A 27 25 0A 0A 07 02 04 00 1F 1A];
 				qcom,mdss-dsi-t-clk-post = <0x1A>;
 				qcom,mdss-dsi-t-clk-pre = <0x1F>;
@@ -4676,8 +4676,8 @@
 
 				samsung,mdss-dsi-sot-hs-mode;
 				qcom,mdss-dsi-panel-framerate = <96>;
-				qcom,mdss-mdp-transfer-time-us = <7533>;
-				qcom,mdss-dsi-panel-clockrate = <1157000000>;
+				qcom,mdss-mdp-transfer-time-us = <6278>;
+				qcom,mdss-dsi-panel-clockrate = <1388400000>;
 				qcom,mdss-dsi-panel-phy-timings = [00 26 0A 0A 27 25 0A 0A 07 02 04 00 1F 1A];
 				qcom,mdss-dsi-t-clk-post = <0x1A>;
 				qcom,mdss-dsi-t-clk-pre = <0x1F>;
@@ -4838,9 +4838,9 @@
 				qcom,mdss-dsi-v-front-porch = <976>;
 
 				samsung,mdss-dsi-sot-hs-mode;
-				qcom,mdss-dsi-panel-framerate = <120>;
-				qcom,mdss-mdp-transfer-time-us = <7533>;
-				qcom,mdss-dsi-panel-clockrate = <1157000000>;
+				qcom,mdss-dsi-panel-framerate = <144>;
+				qcom,mdss-mdp-transfer-time-us = <6278>;
+				qcom,mdss-dsi-panel-clockrate = <1388400000>;
 				qcom,mdss-dsi-panel-phy-timings = [00 26 0A 0A 27 25 0A 0A 07 02 04 00 1F 1A];
 				qcom,mdss-dsi-t-clk-post = <0x1A>;
 				qcom,mdss-dsi-t-clk-pre = <0x1F>;

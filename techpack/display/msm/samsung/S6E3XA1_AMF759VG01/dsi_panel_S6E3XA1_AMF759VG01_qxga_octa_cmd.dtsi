@@ -1590,12 +1590,12 @@
 				qcom,mdss-dsi-v-back-porch = <60>;
 				qcom,mdss-dsi-v-front-porch = <52>;
 
-				qcom,mdss-mdp-transfer-time-us = <7533>;
+				qcom,mdss-mdp-transfer-time-us = <6278>;
 
 				samsung,mdss-dsi-sot-hs-mode;
-				qcom,mdss-dsi-panel-framerate = <120>;
+				qcom,mdss-dsi-panel-framerate = <144>;
 
-				qcom,mdss-dsi-panel-clockrate = <1362000000>; /* 1362Mhz*/
+				qcom,mdss-dsi-panel-clockrate = <1634400000>; /* 1362Mhz*/
 
 				qcom,mdss-dsi-panel-phy-timings = [00 2C 0C 0C 29 26 0C 0C 08 03 04 00 24 1B];	/* SM8250 : dsi_phy_v4_0 */
 
@@ -1751,12 +1751,12 @@
 				qcom,mdss-dsi-v-back-porch = <60>;
 				qcom,mdss-dsi-v-front-porch = <56>;
 
-				qcom,mdss-mdp-transfer-time-us = <7533>;
+				qcom,mdss-mdp-transfer-time-us = <6278>;
 
 				samsung,mdss-dsi-sot-hs-mode;
 				qcom,mdss-dsi-panel-framerate = <96>;
 
-				qcom,mdss-dsi-panel-clockrate = <1362000000>; /* 1362Mhz*/
+				qcom,mdss-dsi-panel-clockrate = <1634400000>; /* 1362Mhz*/
 
 				qcom,mdss-dsi-panel-phy-timings = [00 2C 0C 0C 29 26 0C 0C 08 03 04 00 24 1B];	/* SM8250 : dsi_phy_v4_0 */
 
@@ -1909,12 +1909,12 @@
 				qcom,mdss-dsi-v-back-porch = <60>;
 				qcom,mdss-dsi-v-front-porch = <54>;
 
-				qcom,mdss-mdp-transfer-time-us = <7533>;
+				qcom,mdss-mdp-transfer-time-us = <6278>;
 
 				samsung,mdss-dsi-sot-hs-mode;
 				qcom,mdss-dsi-panel-framerate = <60>;
 
-				qcom,mdss-dsi-panel-clockrate = <1362000000>; /* 1362Mhz*/
+				qcom,mdss-dsi-panel-clockrate = <1634400000>; /* 1362Mhz*/
 
 				qcom,mdss-dsi-panel-phy-timings = [00 2C 0C 0C 29 26 0C 0C 08 03 04 00 24 1B];	/* SM8250 : dsi_phy_v4_0 */
 
@@ -2070,12 +2070,12 @@
 				qcom,mdss-dsi-v-back-porch = <60>;
 				qcom,mdss-dsi-v-front-porch = <60>;
 
-				qcom,mdss-mdp-transfer-time-us = <7533>;
+				qcom,mdss-mdp-transfer-time-us = <6278>;
 
 				samsung,mdss-dsi-sot-hs-mode;
 				qcom,mdss-dsi-panel-framerate = <48>;
 
-				qcom,mdss-dsi-panel-clockrate = <1362000000>; /* 1362Mhz*/
+				qcom,mdss-dsi-panel-clockrate = <1634400000>; /* 1362Mhz*/
 
 				qcom,mdss-dsi-panel-phy-timings = [00 2C 0C 0C 29 26 0C 0C 08 03 04 00 24 1B];	/* SM8250 : dsi_phy_v4_0 */
 
