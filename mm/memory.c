@@ -82,6 +82,30 @@
 
 #include "internal.h"
 
+static bool fault_boost_enabled = true;
+static unsigned long fault_boost_threshold = 10;
+static DEFINE_PER_CPU(unsigned long, page_fault_count);
+
+static inline void fault_boost_check(void)
+{
+	unsigned long count;
+
+	if (!fault_boost_enabled)
+		return;
+
+	count = ++this_cpu_read(page_fault_count);
+	if (count >= fault_boost_threshold) {
+		this_cpu_write(page_fault_count, 0);
+	}
+}
+
+bool mm_fault_boost_active(void)
+{
+	return fault_boost_enabled && 
+	       this_cpu_read(page_fault_count) >= (fault_boost_threshold >> 1);
+}
+EXPORT_SYMBOL(mm_fault_boost_active);
+
 #if defined(LAST_CPUPID_NOT_IN_PAGE_FLAGS) && !defined(CONFIG_COMPILE_TEST)
 #warning Unfortunate NUMA and NUMA Balancing config, growing page-frame for last_cpupid.
 #endif
