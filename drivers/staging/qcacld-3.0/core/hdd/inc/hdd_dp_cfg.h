@@ -373,7 +373,7 @@
 		"gBusBandwidthVeryHighThreshold", \
 		0, \
 		4294967295UL, \
-		9000, \
+		7000, \
 		CFG_VALUE_OR_DEFAULT, \
 		"Bus bandwidth very high threshold")
 
@@ -396,7 +396,7 @@
 		"gBusBandwidthHighThreshold", \
 		0, \
 		4294967295UL, \
-		2000, \
+		1500, \
 		CFG_VALUE_OR_DEFAULT, \
 		"Bus bandwidth high threshold")
 
@@ -419,7 +419,7 @@
 		"gBusBandwidthMediumThreshold", \
 		0, \
 		4294967295UL, \
-		500, \
+		300, \
 		CFG_VALUE_OR_DEFAULT, \
 		"Bus bandwidth medium threshold")
 
@@ -442,7 +442,7 @@
 		"gBusBandwidthLowThreshold", \
 		0, \
 		4294967295UL, \
-		150, \
+		100, \
 		CFG_VALUE_OR_DEFAULT, \
 		"Bus bandwidth low threshold")
 
