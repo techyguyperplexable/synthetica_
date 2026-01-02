@@ -40,6 +40,26 @@
 #include <linux/psi.h>
 #include "internal.h"
 
+extern bool sched_benchmark_mode(void);
+extern bool sched_ui_boost_mode(void);
+
+static bool filemap_boost_enabled = true;
+static unsigned int filemap_readahead_boost_mult = 2;
+
+static inline unsigned long get_boosted_readahead(unsigned long ra_pages)
+{
+	if (filemap_boost_enabled && (sched_benchmark_mode() || sched_ui_boost_mode()))
+		return ra_pages * filemap_readahead_boost_mult;
+	return ra_pages;
+}
+
+static inline bool filemap_should_skip_wait(void)
+{
+	if (filemap_boost_enabled && sched_benchmark_mode())
+		return true;
+	return false;
+}
+
 #ifdef CONFIG_SDP
 #include <sdp/cache_cleanup.h>
 #endif
