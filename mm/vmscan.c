@@ -195,6 +195,28 @@ int vm_swappiness = 100;
 int direct_vm_swappiness = 40;
 
 /*
+ * UI task memory reclaim protection - reduce reclaim pressure for UI tasks
+ */
+static unsigned int ui_memory_protect_ratio = 80;
+
+static inline bool should_protect_ui_memory(struct scan_control *sc)
+{
+	if (current->flags & PF_KSWAPD)
+		return false;
+	if (sc->priority < DEF_PRIORITY - 2)
+		return false;
+	return true;
+}
+
+static inline unsigned long ui_protected_scan(unsigned long nr_to_scan,
+					      struct scan_control *sc)
+{
+	if (should_protect_ui_memory(sc))
+		return (nr_to_scan * ui_memory_protect_ratio) / 100;
+	return nr_to_scan;
+}
+
+/*
  * The total number of pages which are beyond the high watermark within all
  * zones.
  */

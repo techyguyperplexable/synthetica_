@@ -63,6 +63,28 @@ static bool benchmark_mode_active;
 static unsigned int benchmark_boost_factor = 200;
 static ktime_t benchmark_mode_end;
 
+static bool ui_boost_active;
+static unsigned int ui_boost_factor = 150;
+static ktime_t ui_boost_end;
+
+static const char * const ui_critical_apps[] = {
+	"surfaceflinger",
+	"android.ui",
+	"RenderThread",
+	"hwuiTask",
+	"FrameThread",
+	"composer",
+	"launcher",
+	"systemui",
+	"InputDispatch",
+	"InputReader",
+	"Binder:",
+	"GLThread",
+	"mali",
+	"adreno",
+	NULL
+};
+
 static const char * const benchmark_apps[] = {
 	"geekbench",
 	"antutu",
@@ -97,6 +119,41 @@ static bool is_benchmark_task(struct task_struct *p)
 	return false;
 }
 
+static bool is_ui_critical_task(struct task_struct *p)
+{
+	const char * const *app;
+	const char *comm;
+
+	if (!p || !p->comm[0])
+		return false;
+
+	comm = p->comm;
+	for (app = ui_critical_apps; *app; app++) {
+		if (strstr(comm, *app))
+			return true;
+	}
+	return false;
+}
+
+void sched_ui_boost_enable(unsigned int duration_ms)
+{
+	ui_boost_active = true;
+	ui_boost_end = ktime_add_ms(ktime_get(), duration_ms);
+}
+EXPORT_SYMBOL_GPL(sched_ui_boost_enable);
+
+bool sched_ui_boost_mode(void)
+{
+	if (!ui_boost_active)
+		return false;
+	if (ktime_after(ktime_get(), ui_boost_end)) {
+		ui_boost_active = false;
+		return false;
+	}
+	return true;
+}
+EXPORT_SYMBOL_GPL(sched_ui_boost_mode);
+
 void sched_benchmark_boost_enable(unsigned int duration_ms)
 {
 	benchmark_mode_active = true;
@@ -122,6 +179,24 @@ static inline unsigned long benchmark_scale_util(unsigned long util,
 	if (sched_benchmark_mode() || is_benchmark_task(p))
 		return (util * benchmark_boost_factor) / 100;
 	return util;
+}
+
+static inline unsigned long ui_scale_util(unsigned long util,
+					  struct task_struct *p)
+{
+	if (sched_ui_boost_mode() || is_ui_critical_task(p))
+		return (util * ui_boost_factor) / 100;
+	return util;
+}
+
+static inline unsigned long task_boosted_util(unsigned long util,
+					      struct task_struct *p)
+{
+	unsigned long boosted = util;
+
+	boosted = benchmark_scale_util(boosted, p);
+	boosted = ui_scale_util(boosted, p);
+	return boosted;
 }
 
 #ifdef CONFIG_SMP
