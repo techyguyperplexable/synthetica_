@@ -29,7 +29,6 @@ struct ashmem_area {
 	struct file *file;
 	size_t size;
 	unsigned long prot_mask;
-	char name[ASHMEM_NAME_LEN];
 };
 
 static struct kmem_cache *ashmem_area_cachep __read_mostly;
@@ -61,8 +60,7 @@ static int ashmem_open(struct inode *inode, struct file *file)
 
 	*asma = (typeof(*asma)){
 		.mmap_lock = __MUTEX_INITIALIZER(asma->mmap_lock),
-		.prot_mask = PROT_MASK,
-		.name = {0}
+		.prot_mask = PROT_MASK
 	};
 
 	file->private_data = asma;
@@ -142,11 +140,6 @@ static inline vm_flags_t calc_vm_may_flags(unsigned long prot)
 	return _calc_vm_trans(prot, PROT_READ,  VM_MAYREAD) |
 	       _calc_vm_trans(prot, PROT_WRITE, VM_MAYWRITE) |
 	       _calc_vm_trans(prot, PROT_EXEC,  VM_MAYEXEC);
-}
-
-static inline bool ashmem_has_name(struct ashmem_area *asma)
-{
-	return asma->name[0] != '\0';
 }
 
 static int ashmem_vmfile_mmap(struct file *file, struct vm_area_struct *vma)
