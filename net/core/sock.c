@@ -154,14 +154,14 @@ static unsigned int sock_boost_rcvbuf_mult = 4;
 
 static inline int sock_get_boosted_sndbuf(int sndbuf)
 {
-	if (sock_boost_enabled && (sched_benchmark_mode() || sched_ui_boost_mode()))
+	if (sock_boost_enabled && sched_benchmark_mode())
 		return sndbuf * sock_boost_sndbuf_mult;
 	return sndbuf;
 }
 
 static inline int sock_get_boosted_rcvbuf(int rcvbuf)
 {
-	if (sock_boost_enabled && (sched_benchmark_mode() || sched_ui_boost_mode()))
+	if (sock_boost_enabled && sched_benchmark_mode())
 		return rcvbuf * sock_boost_rcvbuf_mult;
 	return rcvbuf;
 }

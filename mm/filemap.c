@@ -48,7 +48,7 @@ static unsigned int filemap_readahead_boost_mult = 4;
 
 static inline unsigned long get_boosted_readahead(unsigned long ra_pages)
 {
-	if (filemap_boost_enabled && (sched_benchmark_mode() || sched_ui_boost_mode()))
+	if (filemap_boost_enabled && sched_benchmark_mode())
 		return ra_pages * filemap_readahead_boost_mult;
 	return ra_pages;
 }

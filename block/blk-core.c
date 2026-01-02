@@ -55,14 +55,14 @@ static unsigned int blk_boost_nr_requests_mult = 4;
 
 static inline unsigned int get_boosted_nr_requests(unsigned int nr)
 {
-	if (blk_boost_enabled && (sched_benchmark_mode() || sched_ui_boost_mode()))
+	if (blk_boost_enabled && sched_benchmark_mode())
 		return nr * blk_boost_nr_requests_mult;
 	return nr;
 }
 
 static inline bool blk_should_merge_aggressive(void)
 {
-	return blk_boost_enabled && (sched_benchmark_mode() || sched_ui_boost_mode());
+	return blk_boost_enabled && sched_benchmark_mode();
 }
 
 #ifdef CONFIG_DEBUG_FS

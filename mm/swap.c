@@ -49,7 +49,7 @@ static unsigned int swap_boost_cluster_mult = 2;
 
 static inline int get_boosted_page_cluster(void)
 {
-	if (swap_boost_enabled && (sched_benchmark_mode() || sched_ui_boost_mode()))
+	if (swap_boost_enabled && sched_benchmark_mode())
 		return page_cluster * swap_boost_cluster_mult;
 	return page_cluster;
 }

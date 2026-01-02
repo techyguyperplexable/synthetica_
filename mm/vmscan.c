@@ -196,11 +196,17 @@ int direct_vm_swappiness = 40;
 
 /*
  * UI task memory reclaim protection - reduce reclaim pressure for UI tasks
+ * Only active during benchmark/ui boost modes
  */
-static unsigned int ui_memory_protect_ratio = 80;
+static unsigned int ui_memory_protect_ratio = 100;
+
+extern bool sched_benchmark_mode(void);
+extern bool sched_ui_boost_mode(void);
 
 static inline bool should_protect_ui_memory(struct scan_control *sc)
 {
+	if (!sched_benchmark_mode() && !sched_ui_boost_mode())
+		return false;
 	if (current->flags & PF_KSWAPD)
 		return false;
 	if (sc->priority < DEF_PRIORITY - 2)
