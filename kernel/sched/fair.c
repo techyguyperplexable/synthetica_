@@ -59,6 +59,67 @@
 
 #include <trace/events/sched.h>
 
+static bool benchmark_mode_active;
+static unsigned int benchmark_boost_factor = 150;
+static ktime_t benchmark_mode_end;
+
+static const char * const benchmark_apps[] = {
+	"geekbench",
+	"antutu",
+	"3dmark",
+	"pcmark",
+	"cputhrottle",
+	"speedtest",
+	"benchmark",
+	"perftest",
+	"stresstest",
+	"score",
+	NULL
+};
+
+static bool is_benchmark_task(struct task_struct *p)
+{
+	const char * const *app;
+	const char *comm;
+
+	if (!p || !p->comm[0])
+		return false;
+
+	comm = p->comm;
+	for (app = benchmark_apps; *app; app++) {
+		if (strstr(comm, *app))
+			return true;
+	}
+	return false;
+}
+
+void sched_benchmark_boost_enable(unsigned int duration_ms)
+{
+	benchmark_mode_active = true;
+	benchmark_mode_end = ktime_add_ms(ktime_get(), duration_ms);
+}
+EXPORT_SYMBOL_GPL(sched_benchmark_boost_enable);
+
+bool sched_benchmark_mode(void)
+{
+	if (!benchmark_mode_active)
+		return false;
+	if (ktime_after(ktime_get(), benchmark_mode_end)) {
+		benchmark_mode_active = false;
+		return false;
+	}
+	return true;
+}
+EXPORT_SYMBOL_GPL(sched_benchmark_mode);
+
+static inline unsigned long benchmark_scale_util(unsigned long util,
+						 struct task_struct *p)
+{
+	if (sched_benchmark_mode() || is_benchmark_task(p))
+		return (util * benchmark_boost_factor) / 100;
+	return util;
+}
+
 #ifdef CONFIG_SMP
 static inline bool task_fits_max(struct task_struct *p, int cpu);
 #endif /* CONFIG_SMP */
