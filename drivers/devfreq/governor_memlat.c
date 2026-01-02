@@ -26,6 +26,9 @@
 
 #include <trace/events/power.h>
 
+extern bool sched_benchmark_mode(void);
+static unsigned int memlat_benchmark_ratio_boost = 200;
+
 struct memlat_node {
 	unsigned int ratio_ceil;
 	unsigned int stall_floor;
@@ -309,6 +312,9 @@ static int devfreq_memlat_get_freq(struct devfreq *df,
 
 	if (max_freq)
 		max_freq = core_to_dev_freq(node, max_freq);
+
+	if (sched_benchmark_mode() && max_freq)
+		max_freq = (max_freq * memlat_benchmark_ratio_boost) / 100;
 
 	if (max_freq || !node->already_zero) {
 		trace_memlat_dev_update(dev_name(df->dev.parent),
