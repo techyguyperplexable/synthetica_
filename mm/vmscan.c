@@ -200,15 +200,15 @@ int direct_vm_swappiness = 60;
  */
 unsigned long vm_total_pages;
 
-static unsigned int reclaim_batch_pages = 32;
-static unsigned int reclaim_foreground_boost = 2;
+static unsigned int reclaim_batch_pages __maybe_unused = 32;
+static unsigned int reclaim_foreground_boost __maybe_unused = 2;
 
-static bool should_boost_reclaim(struct scan_control *sc)
+static bool __maybe_unused should_boost_reclaim(struct scan_control *sc)
 {
 	return sc->priority < DEF_PRIORITY - 2 || current_is_kswapd();
 }
 
-static unsigned long get_reclaim_batch(struct scan_control *sc)
+static unsigned long __maybe_unused get_reclaim_batch(struct scan_control *sc)
 {
 	if (should_boost_reclaim(sc))
 		return reclaim_batch_pages * reclaim_foreground_boost;

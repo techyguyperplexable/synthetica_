@@ -70,7 +70,6 @@ struct kmem_cache *blk_requestq_cachep;
 static struct workqueue_struct *kblockd_workqueue;
 
 static bool blk_boost_sync_io = true;
-static unsigned int blk_sync_boost_depth = 4;
 
 bool blk_should_boost_request(struct request *rq)
 {
