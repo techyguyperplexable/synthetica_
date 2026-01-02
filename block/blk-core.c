@@ -47,6 +47,24 @@
 #include "blk-pm.h"
 #include "blk-rq-qos.h"
 
+extern bool sched_benchmark_mode(void);
+extern bool sched_ui_boost_mode(void);
+
+static bool blk_boost_enabled = true;
+static unsigned int blk_boost_nr_requests_mult = 2;
+
+static inline unsigned int get_boosted_nr_requests(unsigned int nr)
+{
+	if (blk_boost_enabled && (sched_benchmark_mode() || sched_ui_boost_mode()))
+		return nr * blk_boost_nr_requests_mult;
+	return nr;
+}
+
+static inline bool blk_should_merge_aggressive(void)
+{
+	return blk_boost_enabled && (sched_benchmark_mode() || sched_ui_boost_mode());
+}
+
 #ifdef CONFIG_DEBUG_FS
 struct dentry *blk_debugfs_root;
 #endif
