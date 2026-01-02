@@ -1103,8 +1103,6 @@ static void __init do_initcalls(void)
 	for (level = 0; level < ARRAY_SIZE(initcall_levels) - 1; level++) {
 		strcpy(command_line, saved_command_line);
 		do_initcall_level(level, command_line);
-		if (level <= 1 || level == 4 || level == 6)
-			async_synchronize_full();
 	}
 	async_synchronize_full();
 
