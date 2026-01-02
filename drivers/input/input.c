@@ -27,11 +27,42 @@
 #include <linux/device.h>
 #include <linux/mutex.h>
 #include <linux/rcupdate.h>
+#include <linux/pm_qos.h>
 #include "input-compat.h"
 
 MODULE_AUTHOR("Vojtech Pavlik <vojtech@suse.cz>");
 MODULE_DESCRIPTION("Input core");
 MODULE_LICENSE("GPL");
+
+static struct pm_qos_request input_pm_qos_req;
+static bool input_boost_enabled = true;
+module_param(input_boost_enabled, bool, 0644);
+
+static void input_boost_work_fn(struct work_struct *work);
+static DECLARE_DELAYED_WORK(input_boost_work, input_boost_work_fn);
+static unsigned long input_boost_end_time;
+#define INPUT_BOOST_DURATION_MS 80
+
+static void input_boost_work_fn(struct work_struct *work)
+{
+	if (time_before(jiffies, input_boost_end_time)) {
+		schedule_delayed_work(&input_boost_work,
+				      msecs_to_jiffies(INPUT_BOOST_DURATION_MS));
+		return;
+	}
+	pm_qos_update_request(&input_pm_qos_req, PM_QOS_DEFAULT_VALUE);
+}
+
+static void input_boost_kick(void)
+{
+	if (!input_boost_enabled)
+		return;
+
+	input_boost_end_time = jiffies + msecs_to_jiffies(INPUT_BOOST_DURATION_MS);
+	pm_qos_update_request(&input_pm_qos_req, 0);
+	schedule_delayed_work(&input_boost_work,
+			      msecs_to_jiffies(INPUT_BOOST_DURATION_MS));
+}
 
 #define INPUT_MAX_CHAR_DEVICES		1024
 #define INPUT_FIRST_DYNAMIC_DEV		256
@@ -459,6 +490,8 @@ void input_event(struct input_dev *dev,
 {
 	unsigned long flags;
 
+	if (type == EV_ABS || type == EV_KEY)
+		input_boost_kick();
 
 	if (is_event_supported(type, dev->evbit, EV_MAX)) {
 
@@ -2680,6 +2713,9 @@ static int __init input_init(void)
 		goto fail2;
 	}
 
+	pm_qos_add_request(&input_pm_qos_req, PM_QOS_CPU_DMA_LATENCY,
+			   PM_QOS_DEFAULT_VALUE);
+
 	return 0;
 
  fail2:	input_proc_exit();
@@ -2689,6 +2725,8 @@ static int __init input_init(void)
 
 static void __exit input_exit(void)
 {
+	pm_qos_remove_request(&input_pm_qos_req);
+	cancel_delayed_work_sync(&input_boost_work);
 	input_proc_exit();
 	unregister_chrdev_region(MKDEV(INPUT_MAJOR, 0),
 				 INPUT_MAX_CHAR_DEVICES);
