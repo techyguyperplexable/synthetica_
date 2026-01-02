@@ -144,6 +144,28 @@
 
 #include <net/tcp.h>
 #include <net/busy_poll.h>
+
+extern bool sched_benchmark_mode(void);
+extern bool sched_ui_boost_mode(void);
+
+static bool sock_boost_enabled = true;
+static unsigned int sock_boost_sndbuf_mult = 2;
+static unsigned int sock_boost_rcvbuf_mult = 2;
+
+static inline int sock_get_boosted_sndbuf(int sndbuf)
+{
+	if (sock_boost_enabled && (sched_benchmark_mode() || sched_ui_boost_mode()))
+		return sndbuf * sock_boost_sndbuf_mult;
+	return sndbuf;
+}
+
+static inline int sock_get_boosted_rcvbuf(int rcvbuf)
+{
+	if (sock_boost_enabled && (sched_benchmark_mode() || sched_ui_boost_mode()))
+		return rcvbuf * sock_boost_rcvbuf_mult;
+	return rcvbuf;
+}
+
 #ifdef CONFIG_KNOX_NCM
 // SEC_PRODUCT_FEATURE_KNOX_SUPPORT_NPA {
 #include <linux/sched.h>
