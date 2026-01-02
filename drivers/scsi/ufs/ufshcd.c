@@ -6943,7 +6943,7 @@ static int ufshcd_hba_execute_hce(struct ufs_hba *hba)
 	 * instruction might be read back.
 	 * This delay can be changed based on the controller.
 	 */
-	msleep(1);
+	usleep_range(100, 200);
 
 	/* wait for the host controller to complete initialization */
 	retry = 10;
@@ -6955,7 +6955,7 @@ static int ufshcd_hba_execute_hce(struct ufs_hba *hba)
 				"Controller enable failed\n");
 			return -EIO;
 		}
-		msleep(5);
+		usleep_range(500, 1000);
 	}
 
 	/* enable UIC related interrupts */
