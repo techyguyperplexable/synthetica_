@@ -10,12 +10,16 @@
 #include <trace/events/sched.h>
 
 extern bool sched_benchmark_mode(void);
+extern bool sched_ui_boost_mode(void);
 
 int sched_rr_timeslice = RR_TIMESLICE;
 int sysctl_sched_rr_timeslice = (MSEC_PER_SEC * RR_TIMESLICE) / HZ;
 
 static bool rt_benchmark_boost_enabled = true;
 static int rt_benchmark_prio_boost = 5;
+
+static bool rt_ui_boost_enabled = true;
+static int rt_ui_prio_boost = 3;
 
 bool rt_task_benchmark_boost(struct task_struct *p)
 {
@@ -25,6 +29,14 @@ bool rt_task_benchmark_boost(struct task_struct *p)
 }
 EXPORT_SYMBOL(rt_task_benchmark_boost);
 
+bool rt_task_ui_boost(struct task_struct *p)
+{
+	if (!rt_ui_boost_enabled || !sched_ui_boost_mode())
+		return false;
+	return rt_task(p);
+}
+EXPORT_SYMBOL(rt_task_ui_boost);
+
 int rt_get_benchmark_prio_boost(void)
 {
 	if (rt_benchmark_boost_enabled && sched_benchmark_mode())
@@ -33,6 +45,14 @@ int rt_get_benchmark_prio_boost(void)
 }
 EXPORT_SYMBOL(rt_get_benchmark_prio_boost);
 
+int rt_get_ui_prio_boost(void)
+{
+	if (rt_ui_boost_enabled && sched_ui_boost_mode())
+		return rt_ui_prio_boost;
+	return 0;
+}
+EXPORT_SYMBOL(rt_get_ui_prio_boost);
+
 int rt_apply_benchmark_timeslice(int timeslice)
 {
 	if (rt_benchmark_boost_enabled && sched_benchmark_mode())
@@ -40,6 +60,14 @@ int rt_apply_benchmark_timeslice(int timeslice)
 	return timeslice;
 }
 EXPORT_SYMBOL(rt_apply_benchmark_timeslice);
+
+int rt_apply_ui_timeslice(int timeslice)
+{
+	if (rt_ui_boost_enabled && sched_ui_boost_mode())
+		return timeslice + (timeslice >> 1);
+	return timeslice;
+}
+EXPORT_SYMBOL(rt_apply_ui_timeslice);
 
 static int do_sched_rt_period_timer(struct rt_bandwidth *rt_b, int overrun);
 
