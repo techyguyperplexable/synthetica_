@@ -14,20 +14,20 @@
 #include "bus.h"
 
 static struct cnss_vreg_cfg cnss_vreg_list[] = {
-	{"vdd-wlan-core", 1300000, 1300000, 0, 0, 0},
+	{"vdd-wlan-core", 1350000, 1350000, 0, 0, 0},
 	{"vdd-wlan-io", 1800000, 1800000, 0, 0, 0},
 	{"vdd-wlan-xtal-aon", 0, 0, 0, 0, 0},
 	{"vdd-wlan-xtal", 1800000, 1800000, 0, 2, 0},
 	{"vdd-wlan", 0, 0, 0, 0, 0},
 	{"vdd-wlan-ctrl1", 0, 0, 0, 0, 0},
 	{"vdd-wlan-ctrl2", 0, 0, 0, 0, 0},
-	{"vdd-wlan-sp2t", 2700000, 2700000, 0, 0, 0},
+	{"vdd-wlan-sp2t", 2800000, 2800000, 0, 0, 0},
 	{"wlan-ant-switch", 1800000, 1800000, 0, 0, 0},
-	{"wlan-soc-swreg", 1200000, 1200000, 0, 0, 0},
-	{"vdd-wlan-aon", 950000, 950000, 0, 0, 0},
-	{"vdd-wlan-dig", 950000, 952000, 0, 0, 0},
-	{"vdd-wlan-rfa1", 1900000, 1900000, 0, 0, 0},
-	{"vdd-wlan-rfa2", 1350000, 1350000, 0, 0, 0},
+	{"wlan-soc-swreg", 1250000, 1250000, 0, 0, 0},
+	{"vdd-wlan-aon", 1000000, 1000000, 0, 0, 0},
+	{"vdd-wlan-dig", 1000000, 1000000, 0, 0, 0},
+	{"vdd-wlan-rfa1", 1950000, 1950000, 0, 0, 0},
+	{"vdd-wlan-rfa2", 1400000, 1400000, 0, 0, 0},
 	{"vdd-wlan-en", 0, 0, 0, 10, 0},
 };
 

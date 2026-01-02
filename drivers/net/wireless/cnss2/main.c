@@ -22,6 +22,23 @@
 #include "debug.h"
 #include "genl.h"
 
+static bool cnss_wifi_boost_enabled = true;
+static unsigned int cnss_wifi_idle_timeout_ms = 5000;
+
+bool cnss_wifi_range_boost_enabled(void)
+{
+	return cnss_wifi_boost_enabled;
+}
+EXPORT_SYMBOL(cnss_wifi_range_boost_enabled);
+
+unsigned int cnss_get_wifi_idle_timeout(void)
+{
+	if (cnss_wifi_boost_enabled)
+		return cnss_wifi_idle_timeout_ms;
+	return 1000;
+}
+EXPORT_SYMBOL(cnss_get_wifi_idle_timeout);
+
 #define CNSS_DUMP_FORMAT_VER		0x11
 #define CNSS_DUMP_FORMAT_VER_V2		0x22
 #define CNSS_DUMP_MAGIC_VER_V2		0x42445953
