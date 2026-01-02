@@ -13,6 +13,36 @@
 #include "sched.h"
 
 #define IOWAIT_BOOST_MIN	(SCHED_CAPACITY_SCALE / 4)
+#define TOUCH_BOOST_DURATION_NS	80000000ULL
+#define TOUCH_BOOST_UTIL	(SCHED_CAPACITY_SCALE * 3 / 4)
+
+static bool touch_boost_active;
+static u64 touch_boost_end_time;
+
+void sugov_touch_boost_kick(void)
+{
+	touch_boost_active = true;
+	touch_boost_end_time = ktime_get_ns() + TOUCH_BOOST_DURATION_NS;
+}
+EXPORT_SYMBOL_GPL(sugov_touch_boost_kick);
+
+static inline bool sugov_touch_boost_pending(void)
+{
+	if (!touch_boost_active)
+		return false;
+	if (ktime_get_ns() > touch_boost_end_time) {
+		touch_boost_active = false;
+		return false;
+	}
+	return true;
+}
+
+static inline unsigned long sugov_apply_touch_boost(unsigned long util)
+{
+	if (sugov_touch_boost_pending() && util < TOUCH_BOOST_UTIL)
+		return TOUCH_BOOST_UTIL;
+	return util;
+}
 
 struct sugov_tunables {
 	struct gov_attr_set	attr_set;
