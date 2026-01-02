@@ -36,6 +36,44 @@
 
 #include <trace/events/thermal.h>
 
+extern bool sched_benchmark_mode(void);
+
+static bool thermal_benchmark_relax = true;
+static unsigned int thermal_benchmark_max_level = 2;
+static unsigned int thermal_benchmark_temp_margin = 8000;
+
+bool cpu_cooling_benchmark_active(void)
+{
+	return thermal_benchmark_relax && sched_benchmark_mode();
+}
+EXPORT_SYMBOL(cpu_cooling_benchmark_active);
+
+unsigned int cpu_cooling_get_benchmark_max_level(void)
+{
+	if (cpu_cooling_benchmark_active())
+		return thermal_benchmark_max_level;
+	return UINT_MAX;
+}
+EXPORT_SYMBOL(cpu_cooling_get_benchmark_max_level);
+
+int cpu_cooling_get_benchmark_temp_offset(void)
+{
+	if (cpu_cooling_benchmark_active())
+		return thermal_benchmark_temp_margin;
+	return 0;
+}
+EXPORT_SYMBOL(cpu_cooling_get_benchmark_temp_offset);
+
+static unsigned long cpu_cooling_apply_benchmark_limit(unsigned long state,
+						       unsigned long max_state)
+{
+	unsigned int bench_max = cpu_cooling_get_benchmark_max_level();
+
+	if (cpu_cooling_benchmark_active() && state > bench_max)
+		return bench_max;
+	return state;
+}
+
 /*
  * Cooling state <-> CPUFreq frequency
  *
