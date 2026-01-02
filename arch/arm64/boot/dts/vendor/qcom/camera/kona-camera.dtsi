@@ -585,7 +585,7 @@
 			<0 0 0 80000000 0 0 400000000 0>,
 			<0 0 0 80000000 0 0 400000000 0>,
 			<0 0 0 80000000 0 0 400000000 0>,
-			<0 0 0 80000000 0 0 480000000 0>;
+			<0 0 0 80000000 0 0 520000000 0>;
 		clock-cntl-level = "suspend", "minsvs", "lowsvs", "svs",
 			"svs_l1", "nominal", "nominal_l1", "turbo";
 		control-camnoc-axi-clk;
@@ -1299,7 +1299,7 @@
 			<400000000 0 0 0 350000000 0 0 0>,
 			<400000000 0 0 0 475000000 0 0 0>,
 			<400000000 0 0 0 576000000 0 0 0>,
-			<400000000 0 0 0 720000000 0 0 0>;
+			<400000000 0 0 0 760000000 0 0 0>;
 		clock-cntl-level = "lowsvs", "svs", "svs_l1", "turbo";
 		src-clock-name = "sbi_csid_clk_src";
 		clock-control-debugfs = "true";
@@ -1341,7 +1341,7 @@
 			<400000000 0 400000000 0 350000000 0 100000000 0 0>,
 			<400000000 0 400000000 0 475000000 0 200000000 0 0>,
 			<400000000 0 400000000 0 576000000 0 300000000 0 0>,
-			<400000000 0 400000000 0 720000000 0 400000000 0 0>;
+			<400000000 0 400000000 0 760000000 0 400000000 0 0>;
 		clock-cntl-level = "lowsvs", "svs", "svs_l1", "turbo";
 		src-clock-name = "ife_csid_clk_src";
 		clock-control-debugfs = "true";
@@ -1386,7 +1386,7 @@
 			<350000000 0 0 800000000 0 0>,
 			<475000000 0 0 800000000 0 0>,
 			<576000000 0 0 800000000 0 0>,
-			<720000000 0 0 800000000 0 0>;
+			<760000000 0 0 800000000 0 0>;
 
 		clock-cntl-level = "lowsvs", "svs", "svs_l1", "turbo";
 		src-clock-name = "sbi_clk_src";
@@ -1425,14 +1425,14 @@
 			<0 100000000 350000000 0 0>,
 			<0 200000000 475000000 0 0>,
 			<0 300000000 576000000 0 0>,
-			<0 400000000 720000000 0 0>;
+			<0 400000000 760000000 0 0>;
 		clock-cntl-level = "lowsvs", "svs", "svs_l1", "turbo";
 		src-clock-name = "ife_clk_src";
 		scl-clk-names = "ife_0_areg";
 		clock-control-debugfs = "true";
 		clock-names-option =  "ife_dsp_clk";
 		clocks-option = <&clock_camcc CAM_CC_IFE_0_DSP_CLK>;
-		clock-rates-option = <720000000>;
+		clock-rates-option = <760000000>;
 		ubwc-static-cfg = <0x1026 0x1036>;
 		status = "ok";
 	};
@@ -1472,7 +1472,7 @@
 			<400000000 0 400000000 0 350000000 0 100000000 0 0>,
 			<400000000 0 400000000 0 475000000 0 200000000 0 0>,
 			<400000000 0 400000000 0 576000000 0 300000000 0 0>,
-			<400000000 0 400000000 0 720000000 0 400000000 0 0>;
+			<400000000 0 400000000 0 760000000 0 400000000 0 0>;
 		clock-cntl-level = "lowsvs", "svs", "svs_l1", "turbo";
 		src-clock-name = "ife_csid_clk_src";
 		clock-control-debugfs = "true";
@@ -1537,14 +1537,14 @@
 			<0 100000000 350000000 0 0>,
 			<0 200000000 475000000 0 0>,
 			<0 300000000 576000000 0 0>,
-			<0 400000000 720000000 0 0>;
+			<0 400000000 760000000 0 0>;
 		clock-cntl-level = "lowsvs", "svs", "svs_l1", "turbo";
 		src-clock-name = "ife_clk_src";
 		scl-clk-names = "ife_1_areg";
 		clock-control-debugfs = "true";
 		clock-names-option =  "ife_dsp_clk";
 		clocks-option = <&clock_camcc CAM_CC_IFE_1_DSP_CLK>;
-		clock-rates-option = <720000000>;
+		clock-rates-option = <760000000>;
 		ubwc-static-cfg = <0x1026 0x1036>;
 		status = "ok";
 	};
