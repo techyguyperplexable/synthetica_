@@ -29,6 +29,24 @@
 #include "kgsl_sync.h"
 #include "kgsl_trace.h"
 
+extern bool sched_benchmark_mode(void);
+extern bool sched_ui_boost_mode(void);
+
+static bool kgsl_boost_enabled = true;
+static unsigned int kgsl_boost_bus_scale = 150;
+
+static inline bool kgsl_should_boost(void)
+{
+	return kgsl_boost_enabled && (sched_benchmark_mode() || sched_ui_boost_mode());
+}
+
+static inline unsigned int kgsl_get_bus_scale_factor(void)
+{
+	if (kgsl_should_boost())
+		return kgsl_boost_bus_scale;
+	return 100;
+}
+
 #ifndef arch_mmap_check
 #define arch_mmap_check(addr, len, flags)	(0)
 #endif
