@@ -112,6 +112,20 @@ static int sun8i_ui_scaler_coef_index(unsigned int step)
 	}
 }
 
+bool sun8i_ui_scaler_is_enabled(struct sun8i_mixer *mixer, int layer)
+{
+	int vi_cnt = mixer->cfg->vi_num;
+	u32 val;
+
+	if (layer < vi_cnt)
+		return false;
+
+	regmap_read(mixer->engine.regs,
+		    SUN8I_SCALER_GSU_CTRL(vi_cnt, layer - vi_cnt), &val);
+
+	return val & SUN8I_SCALER_GSU_CTRL_EN;
+}
+
 void sun8i_ui_scaler_enable(struct sun8i_mixer *mixer, int layer, bool enable)
 {
 	int vi_cnt = mixer->cfg->vi_num;

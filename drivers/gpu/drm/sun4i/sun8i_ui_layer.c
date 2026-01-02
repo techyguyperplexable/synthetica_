@@ -286,10 +286,41 @@ static void sun8i_ui_layer_atomic_update(struct drm_plane *plane,
 			      true, zpos, old_zpos);
 }
 
+static void sun8i_ui_layer_atomic_async_update(struct drm_plane *plane,
+					       struct drm_plane_state *state)
+{
+	struct sun8i_ui_layer *layer = plane_to_sun8i_ui_layer(plane);
+	struct sun8i_mixer *mixer = layer->mixer;
+
+	sun8i_ui_layer_update_buffer(mixer, layer->channel,
+				     layer->overlay, plane);
+}
+
+static int sun8i_ui_layer_atomic_async_check(struct drm_plane *plane,
+					     struct drm_plane_state *state)
+{
+	struct drm_crtc_state *crtc_state;
+
+	if (!plane->state->crtc)
+		return -EINVAL;
+
+	crtc_state = drm_atomic_get_existing_crtc_state(state->state,
+						       plane->state->crtc);
+	if (!crtc_state->active)
+		return -EINVAL;
+
+	return drm_atomic_helper_check_plane_state(state, crtc_state,
+						   DRM_PLANE_HELPER_NO_SCALING,
+						   DRM_PLANE_HELPER_NO_SCALING,
+						   true, true);
+}
+
 static struct drm_plane_helper_funcs sun8i_ui_layer_helper_funcs = {
 	.atomic_check	= sun8i_ui_layer_atomic_check,
 	.atomic_disable	= sun8i_ui_layer_atomic_disable,
 	.atomic_update	= sun8i_ui_layer_atomic_update,
+	.atomic_async_check = sun8i_ui_layer_atomic_async_check,
+	.atomic_async_update = sun8i_ui_layer_atomic_async_update,
 };
 
 static const struct drm_plane_funcs sun8i_ui_layer_funcs = {
