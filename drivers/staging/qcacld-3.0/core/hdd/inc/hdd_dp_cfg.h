@@ -641,7 +641,7 @@
 		"gTcpTxHighTputThreshold", \
 		0, \
 		16000, \
-		500, \
+		300, \
 		CFG_VALUE_OR_DEFAULT, \
 		"High Threshold inorder to trigger High Tx Tp")
 
