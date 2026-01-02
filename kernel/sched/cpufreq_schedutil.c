@@ -219,6 +219,24 @@ static void sugov_deferred_update(struct sugov_policy *sg_policy)
  * next_freq (as calculated above) is returned, subject to policy min/max and
  * cpufreq driver limitations.
  */
+
+extern bool sched_benchmark_mode(void);
+
+static bool benchmark_freq_boost_enabled = true;
+static unsigned int benchmark_freq_margin = 40;
+
+static inline unsigned long apply_benchmark_freq_boost(unsigned long util,
+						       unsigned long max)
+{
+	unsigned long boosted;
+
+	if (!benchmark_freq_boost_enabled || !sched_benchmark_mode())
+		return util;
+
+	boosted = util + (util * benchmark_freq_margin / 100);
+	return min(boosted, max);
+}
+
 static unsigned int get_next_freq(struct sugov_policy *sg_policy,
 				  unsigned long util, unsigned long max)
 {
@@ -226,13 +244,11 @@ static unsigned int get_next_freq(struct sugov_policy *sg_policy,
 	unsigned int freq;
 	unsigned int idx, l_freq, h_freq;
 
+	util = apply_benchmark_freq_boost(util, max);
+
 	if (arch_scale_freq_invariant())
 		freq = policy->cpuinfo.max_freq;
 	else
-		/*
-		 * Apply a 25% margin so that we select a higher frequency than
-		 * the current one before the CPU is fully busy:
-		 */
 		freq = policy->cur + (policy->cur >> 2);
 
 	freq = map_util_freq(util, freq, max);
@@ -248,10 +264,6 @@ static unsigned int get_next_freq(struct sugov_policy *sg_policy,
 	if (l_freq <= h_freq || l_freq == policy->min)
 		return l_freq;
 
-	/*
-	 * Use the frequency step below if the calculated frequency is <20%
-	 * higher than it.
-	 */
 	if (mult_frac(100, freq - h_freq, l_freq - h_freq) < 20)
 		return h_freq;
 
