@@ -51,6 +51,28 @@
 #include <linux/export.h>
 #include <trace/events/power.h>
 
+static unsigned int pm_qos_ui_latency_us = 100;
+static bool pm_qos_ui_boost_enabled = true;
+
+void pm_qos_set_ui_latency(unsigned int latency_us)
+{
+	if (pm_qos_ui_boost_enabled)
+		pm_qos_ui_latency_us = latency_us;
+}
+EXPORT_SYMBOL_GPL(pm_qos_set_ui_latency);
+
+unsigned int pm_qos_get_ui_latency(void)
+{
+	return pm_qos_ui_boost_enabled ? pm_qos_ui_latency_us : PM_QOS_CPU_DMA_LAT_DEFAULT_VALUE;
+}
+EXPORT_SYMBOL_GPL(pm_qos_get_ui_latency);
+
+bool pm_qos_ui_boost_active(void)
+{
+	return pm_qos_ui_boost_enabled && pm_qos_ui_latency_us < PM_QOS_CPU_DMA_LAT_DEFAULT_VALUE;
+}
+EXPORT_SYMBOL_GPL(pm_qos_ui_boost_active);
+
 /*
  * locking rule: all changes to constraints or notifiers lists
  * or pm_qos_object list and pm_qos_objects need to happen with pm_qos_lock
