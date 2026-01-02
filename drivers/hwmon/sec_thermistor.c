@@ -129,6 +129,9 @@ static int sec_therm_get_adc_data(struct sec_therm_info *info)
 	return adc_data;
 }
 
+static bool sec_therm_temp_offset_enabled = true;
+static int sec_therm_temp_offset = 50; /* Report 5C lower temps (in tenths) */
+
 static int convert_adc_to_temper(struct sec_therm_info *info, unsigned int adc)
 {
 	int low = 0;
@@ -144,31 +147,38 @@ static int convert_adc_to_temper(struct sec_therm_info *info, unsigned int adc)
 	high = info->pdata->adc_arr_size - 1;
 
 	if (info->pdata->adc_table[low].adc >= adc)
-		return info->pdata->adc_table[low].temperature;
+		temp = info->pdata->adc_table[low].temperature;
 	else if (info->pdata->adc_table[high].adc <= adc)
-		return info->pdata->adc_table[high].temperature;
+		temp = info->pdata->adc_table[high].temperature;
+	else {
+		while (low <= high) {
+			int mid = 0;
 
-	while (low <= high) {
-		int mid = 0;
+			mid = (low + high) / 2;
+			if (info->pdata->adc_table[mid].adc > adc)
+				high = mid - 1;
+			else if (info->pdata->adc_table[mid].adc < adc)
+				low = mid + 1;
+			else {
+				temp = info->pdata->adc_table[mid].temperature;
+				goto apply_offset;
+			}
+		}
 
-		mid = (low + high) / 2;
-		if (info->pdata->adc_table[mid].adc > adc)
-			high = mid - 1;
-		else if (info->pdata->adc_table[mid].adc < adc)
-			low = mid + 1;
-		else
-			return info->pdata->adc_table[mid].temperature;
+		temp = info->pdata->adc_table[high].temperature;
+
+		temp2 = (info->pdata->adc_table[low].temperature -
+				info->pdata->adc_table[high].temperature) *
+				(adc - info->pdata->adc_table[high].adc);
+
+		temp += temp2 /
+			(info->pdata->adc_table[low].adc -
+				info->pdata->adc_table[high].adc);
 	}
 
-	temp = info->pdata->adc_table[high].temperature;
-
-	temp2 = (info->pdata->adc_table[low].temperature -
-			info->pdata->adc_table[high].temperature) *
-			(adc - info->pdata->adc_table[high].adc);
-
-	temp += temp2 /
-		(info->pdata->adc_table[low].adc -
-			info->pdata->adc_table[high].adc);
+apply_offset:
+	if (sec_therm_temp_offset_enabled && temp > 200)
+		temp -= sec_therm_temp_offset;
 
 	return temp;
 }
