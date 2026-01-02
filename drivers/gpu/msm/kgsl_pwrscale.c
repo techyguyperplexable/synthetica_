@@ -44,7 +44,7 @@ unsigned int kgsl_get_benchmark_min_pwrlevel(struct kgsl_device *device)
 	struct kgsl_pwrctrl *pwr = &device->pwrctrl;
 
 	if (!kgsl_benchmark_mode_active())
-		return pwr->default_pwrlevel;
+		return pwr->active_pwrlevel;
 
 	return min_t(unsigned int, gpu_benchmark_min_level, pwr->num_pwrlevels - 1);
 }

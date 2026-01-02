@@ -82,18 +82,19 @@
 
 #include "internal.h"
 
-static bool fault_boost_enabled = true;
-static unsigned long fault_boost_threshold = 10;
+static bool fault_boost_enabled __maybe_unused = true;
+static unsigned long fault_boost_threshold __maybe_unused = 10;
 static DEFINE_PER_CPU(unsigned long, page_fault_count);
 
-static inline void fault_boost_check(void)
+static inline void __maybe_unused fault_boost_check(void)
 {
 	unsigned long count;
 
 	if (!fault_boost_enabled)
 		return;
 
-	count = ++this_cpu_read(page_fault_count);
+	count = this_cpu_read(page_fault_count) + 1;
+	this_cpu_write(page_fault_count, count);
 	if (count >= fault_boost_threshold) {
 		this_cpu_write(page_fault_count, 0);
 	}

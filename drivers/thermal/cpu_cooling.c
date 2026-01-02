@@ -64,7 +64,7 @@ int cpu_cooling_get_benchmark_temp_offset(void)
 }
 EXPORT_SYMBOL(cpu_cooling_get_benchmark_temp_offset);
 
-static unsigned long cpu_cooling_apply_benchmark_limit(unsigned long state,
+static unsigned long __maybe_unused cpu_cooling_apply_benchmark_limit(unsigned long state,
 						       unsigned long max_state)
 {
 	unsigned int bench_max = cpu_cooling_get_benchmark_max_level();

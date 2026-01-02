@@ -16,11 +16,23 @@ ANYKERNEL_DIR="$KERNEL_ROOT/AnyKernel3"
 # --- Build Prompt Selection ---
 info() { echo -e "\n\e[1;36m==>\e[0m \e[1m$1\e[0m"; }
 
-# 1. SELinux Mode
-info "Select SELinux mode:"
-echo "1) Enforcing"
-echo "2) Permissive"
-read -p "Choice [1/2]: " SELINUX_CHOICE
+# Check for non-interactive mode (pass SELINUX and VARIANT as env vars)
+if [ -n "$ACACIA_SELINUX" ] && [ -n "$ACACIA_VARIANT" ]; then
+    SELINUX_CHOICE="$ACACIA_SELINUX"
+    VARIANT_CHOICE="$ACACIA_VARIANT"
+else
+    # 1. SELinux Mode
+    info "Select SELinux mode:"
+    echo "1) Enforcing"
+    echo "2) Permissive"
+    read -p "Choice [1/2]: " SELINUX_CHOICE
+
+    # 2. Build Variant (Oplus vs Normal)
+    info "Select Build Variant:"
+    echo "1) Normal"
+    echo "2) Oplus"
+    read -p "Choice [1/2]: " VARIANT_CHOICE
+fi
 
 case "$SELINUX_CHOICE" in
     2)
@@ -33,16 +45,9 @@ case "$SELINUX_CHOICE" in
         ;;
 esac
 
-# 2. Build Variant (Oplus vs Normal)
-info "Select Build Variant:"
-echo "1) Normal"
-echo "2) Oplus"
-read -p "Choice [1/2]: " VARIANT_CHOICE
-
 case "$VARIANT_CHOICE" in
     2)
         IS_OPLUS=true
-        # Assumes file is at arch/arm64/configs/vendor/oplus.config
         EXTRA_CONFIG="vendor/oplus.config" 
         ;;
     *)
@@ -172,22 +177,24 @@ if [ ${PIPESTATUS[0]} -ne 0 ]; then tg_stop_monitor; tg_upload_log; exit 1; fi
 
 # Compilation
 info "Starting Compilation..."
-(
-    echo "--- Building DTBO ---"
-    make -j$(nproc) O="$OUT_DIR" $KERNEL_MAKE_ENV $HOST_BUILD_ENV CC="clang --target=aarch64-linux-gnu" dtbo.img
-    if [ $? -eq 0 ]; then
-        echo "--- Building Image ---"
-        make -j$(nproc) O="$OUT_DIR" $KERNEL_MAKE_ENV $HOST_BUILD_ENV CC="clang --target=aarch64-linux-gnu" Image
-    else
-        exit 1
-    fi
-) 2>&1 | tee -a "$LOG_FILE"
-BUILD_STATUS=${PIPESTATUS[0]}
+echo "--- Building DTBO ---"
+make -j$(nproc) O="$OUT_DIR" $KERNEL_MAKE_ENV $HOST_BUILD_ENV CC="clang --target=aarch64-linux-gnu" dtbo.img 2>&1 | tee -a "$LOG_FILE"
+DTBO_STATUS=${PIPESTATUS[0]}
+
+if [ $DTBO_STATUS -eq 0 ]; then
+    echo "--- Building Image ---"
+    make -j$(nproc) O="$OUT_DIR" $KERNEL_MAKE_ENV $HOST_BUILD_ENV CC="clang --target=aarch64-linux-gnu" Image 2>&1 | tee -a "$LOG_FILE"
+    BUILD_STATUS=${PIPESTATUS[0]}
+else
+    BUILD_STATUS=1
+fi
 
 if [ $BUILD_STATUS -eq 0 ]; then
     tg_stop_monitor
 else
     tg_stop_monitor
+    echo "=== BUILD FAILED - Last 50 error lines ==="
+    grep -i "error:" "$LOG_FILE" | tail -50
     tg_upload_log
     exit 1
 fi
