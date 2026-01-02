@@ -48,11 +48,11 @@
 #endif
 
 /* Max # of packets to be processed in 1 tx comp loop */
-#define CFG_DP_TX_COMP_LOOP_PKT_LIMIT_DEFAULT 64
+#define CFG_DP_TX_COMP_LOOP_PKT_LIMIT_DEFAULT 256
 #define CFG_DP_TX_COMP_LOOP_PKT_LIMIT_MAX (1024 * 1024)
 
 /*Max # of packets to be processed in 1 rx reap loop */
-#define CFG_DP_RX_REAP_LOOP_PKT_LIMIT_DEFAULT 64
+#define CFG_DP_RX_REAP_LOOP_PKT_LIMIT_DEFAULT 256
 #define CFG_DP_RX_REAP_LOOP_PKT_LIMIT_MAX (1024 * 1024)
 
 /* Max # of HP OOS (out of sync) updates */
