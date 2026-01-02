@@ -25,6 +25,23 @@
 #include <linux/uaccess.h>
 #include <asm/unistd.h>
 
+extern bool sched_benchmark_mode(void);
+extern bool sched_ui_boost_mode(void);
+
+static bool rw_boost_enabled = true;
+
+static inline bool rw_should_boost(void)
+{
+	return rw_boost_enabled && (sched_benchmark_mode() || sched_ui_boost_mode());
+}
+
+static inline size_t rw_get_boosted_chunk(size_t chunk)
+{
+	if (rw_should_boost())
+		return chunk << 1;
+	return chunk;
+}
+
 #ifdef CONFIG_FSCRYPT_SDP
 #include <linux/fscrypto_sdp_cache.h>
 #endif
