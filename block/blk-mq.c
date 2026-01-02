@@ -38,6 +38,41 @@
 #include "blk-mq-sched.h"
 #include "blk-rq-qos.h"
 
+extern bool sched_benchmark_mode(void);
+
+static bool blk_mq_benchmark_boost = true;
+static unsigned int blk_mq_benchmark_queue_depth = 256;
+static unsigned int blk_mq_benchmark_batch_size = 32;
+
+bool blk_mq_benchmark_active(void)
+{
+	return blk_mq_benchmark_boost && sched_benchmark_mode();
+}
+EXPORT_SYMBOL(blk_mq_benchmark_active);
+
+unsigned int blk_mq_get_benchmark_queue_depth(void)
+{
+	if (blk_mq_benchmark_active())
+		return blk_mq_benchmark_queue_depth;
+	return 0;
+}
+EXPORT_SYMBOL(blk_mq_get_benchmark_queue_depth);
+
+unsigned int blk_mq_get_benchmark_batch(void)
+{
+	if (blk_mq_benchmark_active())
+		return blk_mq_benchmark_batch_size;
+	return 16;
+}
+EXPORT_SYMBOL(blk_mq_get_benchmark_batch);
+
+void blk_mq_benchmark_kick_queues(struct request_queue *q)
+{
+	if (blk_mq_benchmark_active() && q)
+		blk_mq_run_hw_queues(q, true);
+}
+EXPORT_SYMBOL(blk_mq_benchmark_kick_queues);
+
 static bool blk_mq_poll(struct request_queue *q, blk_qc_t cookie);
 static void blk_mq_poll_stats_start(struct request_queue *q);
 static void blk_mq_poll_stats_fn(struct blk_stat_callback *cb);
