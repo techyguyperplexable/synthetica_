@@ -30,7 +30,7 @@
 		src-clock-name = "csi0phytimer_clk_src";
 		clock-cntl-level = "turbo";
 		clock-rates =
-			<400000000 0 300000000 0>;
+			<450000000 0 350000000 0>;
 		status = "ok";
 	};
 
@@ -58,7 +58,7 @@
 		src-clock-name = "csi1phytimer_clk_src";
 		clock-cntl-level = "turbo";
 		clock-rates =
-			<400000000 0 300000000 0>;
+			<450000000 0 350000000 0>;
 
 		status = "ok";
 	};
@@ -87,7 +87,7 @@
 		src-clock-name = "csi2phytimer_clk_src";
 		clock-cntl-level = "turbo";
 		clock-rates =
-			<400000000 0 300000000 0>;
+			<450000000 0 350000000 0>;
 		status = "ok";
 	};
 
@@ -115,7 +115,7 @@
 		src-clock-name = "csi3phytimer_clk_src";
 		clock-cntl-level = "turbo";
 		clock-rates =
-			<400000000 0 300000000 0>;
+			<450000000 0 350000000 0>;
 		status = "ok";
 	};
 
@@ -143,7 +143,7 @@
 		src-clock-name = "csi4phytimer_clk_src";
 		clock-cntl-level = "turbo";
 		clock-rates =
-			<400000000 0 300000000 0>;
+			<450000000 0 350000000 0>;
 		status = "ok";
 	};
 
@@ -171,7 +171,7 @@
 		src-clock-name = "csi5phytimer_clk_src";
 		clock-cntl-level = "turbo";
 		clock-rates =
-			<400000000 0 300000000 0>;
+			<450000000 0 350000000 0>;
 		status = "ok";
 	};
 
@@ -192,7 +192,7 @@
 			"cci_0_clk";
 		src-clock-name = "cci_0_clk_src";
 		clock-cntl-level = "lowsvs";
-		clock-rates = <37500000 0>;
+		clock-rates = <50000000 0>;
 		pinctrl-names = "cam_default", "cam_suspend";
 		pinctrl-0 = <&cci0_active &cci1_active>;
 		pinctrl-1 = <&cci0_suspend &cci1_suspend>;
@@ -285,7 +285,7 @@
 			"cci_1_clk";
 		src-clock-name = "cci_1_clk_src";
 		clock-cntl-level = "lowsvs";
-		clock-rates = <37500000 0>;
+		clock-rates = <50000000 0>;
 		pinctrl-names = "cam_default", "cam_suspend";
 		pinctrl-0 = <&cci2_active &cci3_active>;
 		pinctrl-1 = <&cci2_suspend &cci3_suspend>;
