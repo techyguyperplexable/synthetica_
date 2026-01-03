@@ -714,6 +714,7 @@ static const struct freq_tbl ftbl_disp_cc_mdss_mdp_clk_src[] = {
 	F(300000000, P_DISP_CC_PLL1_OUT_MAIN, 2, 0, 0),
 	F(345000000, P_DISP_CC_PLL0_OUT_MAIN, 4, 0, 0),
 	F(460000000, P_DISP_CC_PLL0_OUT_MAIN, 3, 0, 0),
+	F(560000000, P_DISP_CC_PLL0_OUT_MAIN, 2, 0, 0),
 	{ }
 };
 
@@ -738,7 +739,7 @@ static struct clk_rcg2 disp_cc_mdss_mdp_clk_src = {
 			[VDD_LOWER] = 200000000,
 			[VDD_LOW] = 300000000,
 			[VDD_LOW_L1] = 345000000,
-			[VDD_NOMINAL] = 460000000},
+			[VDD_NOMINAL] = 560000000},
 	},
 };
 
@@ -790,6 +791,7 @@ static const struct freq_tbl ftbl_disp_cc_mdss_rot_clk_src[] = {
 	F(300000000, P_DISP_CC_PLL1_OUT_MAIN, 2, 0, 0),
 	F(345000000, P_DISP_CC_PLL0_OUT_MAIN, 4, 0, 0),
 	F(460000000, P_DISP_CC_PLL0_OUT_MAIN, 3, 0, 0),
+	F(560000000, P_DISP_CC_PLL0_OUT_MAIN, 2, 0, 0),
 	{ }
 };
 
@@ -814,7 +816,7 @@ static struct clk_rcg2 disp_cc_mdss_rot_clk_src = {
 			[VDD_LOWER] = 200000000,
 			[VDD_LOW] = 300000000,
 			[VDD_LOW_L1] = 345000000,
-			[VDD_NOMINAL] = 460000000},
+			[VDD_NOMINAL] = 560000000},
 	},
 };
 
