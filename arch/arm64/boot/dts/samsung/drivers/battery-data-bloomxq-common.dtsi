@@ -410,8 +410,8 @@
 							4470 4380
 							4470 4330>;
 
-		battery,max_input_voltage = <9000>; /* mV */
-		battery,max_input_current = <3000>;  /* mA */
+		battery,max_input_voltage = <11000>; /* mV */
+		battery,max_input_current = <3500>;  /* mA */
 
 		battery,enable_sysovlo_irq;
 		battery,enable_noise_wa;

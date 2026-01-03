@@ -334,8 +334,8 @@
 		battery,step_charging_current = <3150 2850>;
 		battery,step_charging_float_voltage = <4150 4350>;
 
-		battery,max_input_voltage = <9000>; /* mV */
-		battery,max_input_current = <3000>;  /* mA */
+		battery,max_input_voltage = <11000>; /* mV */
+		battery,max_input_current = <3500>;  /* mA */
 
 		battery,enable_sysovlo_irq;
 		battery,enable_noise_wa;

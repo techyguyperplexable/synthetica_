@@ -75,8 +75,8 @@
 	pca9468@57 {
 		compatible = "nxp,pca9468";
 		reg = <0x57>;
-		pca9468,input-current-limit = <2550000>; /* 2.55A */
-		pca9468,charging-current = <6000000>; /* 6A */
+		pca9468,input-current-limit = <3000000>; /* 2.55A */
+		pca9468,charging-current = <7500000>; /* 6A */
 		pca9468,ta-max-vol = <10000000>; /* 10.0V */
 		pca9468,input-itopoff = <900000>; /* 900mA */
 		pca9468,sense-resistance = <0>; /* 5mOhm */
@@ -446,7 +446,7 @@
 
 		battery,pd_charging_charge_power = <15000>;
 		battery,max_charging_current = <3100>;
-		battery,max_charging_charge_power = <25000>; /* 25W */
+		battery,max_charging_charge_power = <35000>; /* 25W */
 
 		/* cycle, chg_float_voltage, recharge_condition_vcell, full_condition_vcell, full_condition_soc */
 		battery,age_data = <0 4420 4350 4370 93
@@ -467,7 +467,7 @@
 
 		/* direct step charging option */
 		battery,dc_step_chg_type = <0xA9>; /* STEP_CHARGING_CONDITION_SOC_INIT_ONLY, STEP_CHARGING_CONDITION_FLOAT_VOLTAGE, STEP_CHARGING_CONDITION_ONLINE, STEP_CHARGING_CONDITION_VOLTAGE*/
-		battery,dc_step_chg_charge_power = <22000>;
+		battery,dc_step_chg_charge_power = <27000>;
 		battery,dc_step_chg_step = <3>;
 		battery,dc_step_chg_cond_vol = <4000 4200 4420>; /*<25w 3step> STEP_CHARGING_CONDITION_VOLTAGE */
 		battery,dc_step_chg_iin_check_cnt = <3>;
@@ -486,8 +486,8 @@
 								0x41 0x8B 0x30 0x21 0xDC 0xC0>;
 
 
-		battery,max_input_voltage = <9000>; /* mV */
-		battery,max_input_current = <3000>; /* mA */
+		battery,max_input_voltage = <11000>; /* mV */
+		battery,max_input_current = <3500>; /* mA */
 
 		battery,enable_sysovlo_irq;
 		battery,enable_noise_wa;
