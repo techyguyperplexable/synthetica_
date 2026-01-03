@@ -577,7 +577,6 @@ static struct clk_rcg2 cam_cc_camnoc_axi_clk_src = {
 static const struct freq_tbl ftbl_cam_cc_cci_0_clk_src[] = {
 	F(19200000, P_BI_TCXO, 1, 0, 0),
 	F(37500000, P_CAM_CC_PLL0_OUT_EVEN, 16, 0, 0),
-	F(50000000, P_CAM_CC_PLL0_OUT_EVEN, 12, 0, 0),
 	{ }
 };
 
@@ -626,7 +625,6 @@ static struct clk_rcg2 cam_cc_cci_1_clk_src = {
 static const struct freq_tbl ftbl_cam_cc_cphy_rx_clk_src[] = {
 	F(19200000, P_BI_TCXO, 1, 0, 0),
 	F(400000000, P_CAM_CC_PLL0_OUT_ODD, 1, 0, 0),
-	F(450000000, P_CAM_CC_PLL0_OUT_ODD, 1, 0, 0),
 	{ }
 };
 
@@ -654,7 +652,6 @@ static struct clk_rcg2 cam_cc_cphy_rx_clk_src = {
 static const struct freq_tbl ftbl_cam_cc_csi0phytimer_clk_src[] = {
 	F(19200000, P_BI_TCXO, 1, 0, 0),
 	F(300000000, P_CAM_CC_PLL0_OUT_EVEN, 2, 0, 0),
-	F(350000000, P_CAM_CC_PLL0_OUT_EVEN, 2, 0, 0),
 	{ }
 };
 
