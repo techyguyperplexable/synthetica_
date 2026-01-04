@@ -955,7 +955,7 @@ static int qca_set_baudrate(struct hci_dev *hdev, uint8_t baudrate)
 	struct qca_serdev *qcadev;
 	u8 cmd[] = { 0x01, 0x48, 0xFC, 0x01, 0x00 };
 
-	if (baudrate > QCA_BAUDRATE_3500000)
+	if (baudrate > QCA_BAUDRATE_3200000)
 		return -EINVAL;
 
 	cmd[4] = baudrate;
@@ -1216,7 +1216,7 @@ static struct hci_uart_proto qca_proto = {
 	.name		= "QCA",
 	.manufacturer	= 29,
 	.init_speed	= 115200,
-	.oper_speed	= 3500000,
+	.oper_speed	= 3000000,
 	.open		= qca_open,
 	.close		= qca_close,
 	.flush		= qca_flush,
