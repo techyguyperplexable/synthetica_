@@ -92,6 +92,10 @@ extern unsigned long highest_memmap_pfn;
  */
 extern int isolate_lru_page(struct page *page);
 extern void putback_lru_page(struct page *page);
+#ifdef CONFIG_PROCESS_RECLAIM
+extern unsigned long reclaim_pages_from_list(struct list_head *page_list,
+					struct vm_area_struct *vma);
+#endif
 
 /*
  * in mm/rmap.c:
