@@ -71,7 +71,7 @@ struct aio_ring {
 	struct io_event		io_events[0];
 }; /* 128 bytes + ring size */
 
-#define AIO_RING_PAGES	8
+#define AIO_RING_PAGES	16	/* doubled for better throughput */
 
 struct kioctx_table {
 	struct rcu_head		rcu;
@@ -217,7 +217,7 @@ struct aio_kiocb {
 /*------ sysctl variables----*/
 static DEFINE_SPINLOCK(aio_nr_lock);
 unsigned long aio_nr;		/* current system wide number of aio requests */
-unsigned long aio_max_nr = 0x10000; /* system wide maximum number of aio requests */
+unsigned long aio_max_nr = 0x80000; /* system wide maximum number of aio requests - 8x increase */
 /*----end sysctl variables---*/
 
 static struct kmem_cache	*kiocb_cachep;

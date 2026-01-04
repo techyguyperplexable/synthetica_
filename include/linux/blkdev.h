@@ -47,9 +47,9 @@ struct keyslot_manager;
 
 #define BLKDEV_MIN_RQ	4
 #ifdef CONFIG_LARGE_DIRTY_BUFFER
-#define BLKDEV_MAX_RQ	512
+#define BLKDEV_MAX_RQ	1024	/* increased for UFS/NVMe throughput */
 #else
-#define BLKDEV_MAX_RQ  256     /* Default maximum */
+#define BLKDEV_MAX_RQ  512     /* increased default maximum */
 #endif
 
 /* Must be consistent with blk_mq_poll_stats_bkt() */

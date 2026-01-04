@@ -2510,7 +2510,7 @@ int __must_check write_one_page(struct page *page);
 void task_dirty_inc(struct task_struct *tsk);
 
 /* readahead.c */
-#define VM_READAHEAD_PAGES	(SZ_1M / PAGE_SIZE)
+#define VM_READAHEAD_PAGES	(SZ_2M / PAGE_SIZE)	/* 2MB readahead for UFS */
 extern int mmap_readaround_limit;
 
 int force_page_cache_readahead(struct address_space *mapping, struct file *filp,
