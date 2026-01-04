@@ -50,7 +50,7 @@
 				"he_max_frag_msdu", \
 				0, \
 				7, \
-				0, \
+				7, \
 				CFG_VALUE_OR_DEFAULT, \
 				"HE Max Frag Msdu")
 
@@ -135,7 +135,7 @@
 				"he_max_ampdu_len", \
 				0, \
 				3, \
-				0, \
+				3, \
 				CFG_VALUE_OR_DEFAULT, \
 				"HE Max Ampdu Len")
 

@@ -310,7 +310,7 @@
 	"gMaxAmsduNum", \
 	0, \
 	15, \
-	0, \
+	15, \
 	CFG_VALUE_OR_DEFAULT, \
 	"Max AMSDU Number")
 

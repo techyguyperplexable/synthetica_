@@ -527,7 +527,7 @@
 		"gVhtAmpduLenExponent", \
 		0, \
 		7, \
-		3, \
+		7, \
 		CFG_VALUE_OR_DEFAULT, \
 		"VHT AMPDU Len in Exponent")
 
@@ -550,7 +550,7 @@
 		"gVhtMpduLen", \
 		0, \
 		2, \
-		0, \
+		2, \
 		CFG_VALUE_OR_DEFAULT, \
 		"VHT MPDU Length")
 
