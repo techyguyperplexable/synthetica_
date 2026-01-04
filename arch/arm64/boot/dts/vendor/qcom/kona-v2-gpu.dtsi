@@ -8,8 +8,8 @@
 	gpu_opp_table_v2: gpu-opp-table_v2 {
 		compatible = "operating-points-v2";
 
-		opp-970000000 {
-			opp-hz = /bits/ 64 <970000000>;
+		opp-932000000 {
+			opp-hz = /bits/ 64 <932000000>;
 			opp-microvolt = <RPMH_REGULATOR_LEVEL_TURBO_L2>;
 		};
 
@@ -88,7 +88,7 @@
 
 			qcom,gpu-pwrlevel@0 {
 				reg = <0>;
-				qcom,gpu-freq = <970000000>;
+				qcom,gpu-freq = <932000000>;
 				
 				qcom,bus-freq-ddr7 = <12>;
 				qcom,bus-freq-ddr8 = <12>;
