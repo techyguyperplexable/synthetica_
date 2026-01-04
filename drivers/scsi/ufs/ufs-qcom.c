@@ -599,9 +599,6 @@ static int ufs_qcom_set_dme_vs_core_clk_ctrl_max_freq_mode(struct ufs_hba *hba)
 	}
 
 	switch (max_freq) {
-	case 403000000:
-		err = ufs_qcom_set_dme_vs_core_clk_ctrl_clear_div(hba, 403, 16);
-		break;
 	case 300000000:
 		err = ufs_qcom_set_dme_vs_core_clk_ctrl_clear_div(hba, 300, 12);
 		break;

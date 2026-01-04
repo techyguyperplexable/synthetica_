@@ -1187,7 +1187,6 @@ static const struct freq_tbl ftbl_gcc_ufs_card_ice_core_clk_src[] = {
 	F(75000000, P_GPLL0_OUT_EVEN, 4, 0, 0),
 	F(150000000, P_GPLL0_OUT_MAIN, 4, 0, 0),
 	F(300000000, P_GPLL0_OUT_MAIN, 2, 0, 0),
-	F(403000000, P_GPLL9_OUT_MAIN, 2, 0, 0),
 	{ }
 };
 
@@ -1195,14 +1194,14 @@ static struct clk_rcg2 gcc_ufs_card_ice_core_clk_src = {
 	.cmd_rcgr = 0x7506c,
 	.mnd_width = 0,
 	.hid_width = 5,
-	.parent_map = gcc_parent_map_4,
+	.parent_map = gcc_parent_map_0,
 	.freq_tbl = ftbl_gcc_ufs_card_ice_core_clk_src,
 	.enable_safe_config = true,
 	.flags = HW_CLK_CTRL_MODE,
 	.clkr.hw.init = &(struct clk_init_data){
 		.name = "gcc_ufs_card_ice_core_clk_src",
-		.parent_names = gcc_parent_names_4,
-		.num_parents = 6,
+		.parent_names = gcc_parent_names_0,
+		.num_parents = 4,
 		.flags = CLK_SET_RATE_PARENT,
 		.ops = &clk_rcg2_ops,
 		.vdd_class = &vdd_cx,
@@ -1211,8 +1210,7 @@ static struct clk_rcg2 gcc_ufs_card_ice_core_clk_src = {
 			[VDD_MIN] = 37500000,
 			[VDD_LOWER] = 75000000,
 			[VDD_LOW] = 150000000,
-			[VDD_NOMINAL] = 300000000,
-			[VDD_HIGH] = 403000000},
+			[VDD_NOMINAL] = 300000000},
 	},
 };
 
@@ -1278,7 +1276,6 @@ static const struct freq_tbl ftbl_gcc_ufs_phy_axi_clk_src[] = {
 	F(75000000, P_GPLL0_OUT_EVEN, 4, 0, 0),
 	F(150000000, P_GPLL0_OUT_MAIN, 4, 0, 0),
 	F(300000000, P_GPLL0_OUT_MAIN, 2, 0, 0),
-	F(403000000, P_GPLL9_OUT_MAIN, 2, 0, 0),
 	{ }
 };
 
@@ -1286,14 +1283,14 @@ static struct clk_rcg2 gcc_ufs_phy_axi_clk_src = {
 	.cmd_rcgr = 0x77024,
 	.mnd_width = 8,
 	.hid_width = 5,
-	.parent_map = gcc_parent_map_4,
+	.parent_map = gcc_parent_map_0,
 	.freq_tbl = ftbl_gcc_ufs_phy_axi_clk_src,
 	.enable_safe_config = true,
 	.flags = HW_CLK_CTRL_MODE,
 	.clkr.hw.init = &(struct clk_init_data){
 		.name = "gcc_ufs_phy_axi_clk_src",
-		.parent_names = gcc_parent_names_4,
-		.num_parents = 6,
+		.parent_names = gcc_parent_names_0,
+		.num_parents = 4,
 		.flags = CLK_SET_RATE_PARENT,
 		.ops = &clk_rcg2_ops,
 		.vdd_class = &vdd_cx,
@@ -1302,8 +1299,7 @@ static struct clk_rcg2 gcc_ufs_phy_axi_clk_src = {
 			[VDD_MIN] = 37500000,
 			[VDD_LOWER] = 75000000,
 			[VDD_LOW] = 150000000,
-			[VDD_NOMINAL] = 300000000,
-			[VDD_HIGH] = 403000000},
+			[VDD_NOMINAL] = 300000000},
 	},
 };
 
@@ -1311,14 +1307,14 @@ static struct clk_rcg2 gcc_ufs_phy_ice_core_clk_src = {
 	.cmd_rcgr = 0x7706c,
 	.mnd_width = 0,
 	.hid_width = 5,
-	.parent_map = gcc_parent_map_4,
+	.parent_map = gcc_parent_map_0,
 	.freq_tbl = ftbl_gcc_ufs_card_ice_core_clk_src,
 	.enable_safe_config = true,
 	.flags = HW_CLK_CTRL_MODE,
 	.clkr.hw.init = &(struct clk_init_data){
 		.name = "gcc_ufs_phy_ice_core_clk_src",
-		.parent_names = gcc_parent_names_4,
-		.num_parents = 6,
+		.parent_names = gcc_parent_names_0,
+		.num_parents = 4,
 		.flags = CLK_SET_RATE_PARENT,
 		.ops = &clk_rcg2_ops,
 		.vdd_class = &vdd_cx,
@@ -1327,8 +1323,7 @@ static struct clk_rcg2 gcc_ufs_phy_ice_core_clk_src = {
 			[VDD_MIN] = 37500000,
 			[VDD_LOWER] = 75000000,
 			[VDD_LOW] = 150000000,
-			[VDD_NOMINAL] = 300000000,
-			[VDD_HIGH] = 403000000},
+			[VDD_NOMINAL] = 300000000},
 	},
 };
 
@@ -1357,14 +1352,14 @@ static struct clk_rcg2 gcc_ufs_phy_unipro_core_clk_src = {
 	.cmd_rcgr = 0x77084,
 	.mnd_width = 0,
 	.hid_width = 5,
-	.parent_map = gcc_parent_map_4,
+	.parent_map = gcc_parent_map_0,
 	.freq_tbl = ftbl_gcc_ufs_card_ice_core_clk_src,
 	.enable_safe_config = true,
 	.flags = HW_CLK_CTRL_MODE,
 	.clkr.hw.init = &(struct clk_init_data){
 		.name = "gcc_ufs_phy_unipro_core_clk_src",
-		.parent_names = gcc_parent_names_4,
-		.num_parents = 6,
+		.parent_names = gcc_parent_names_0,
+		.num_parents = 4,
 		.flags = CLK_SET_RATE_PARENT,
 		.ops = &clk_rcg2_ops,
 		.vdd_class = &vdd_cx,
@@ -1373,8 +1368,7 @@ static struct clk_rcg2 gcc_ufs_phy_unipro_core_clk_src = {
 			[VDD_MIN] = 37500000,
 			[VDD_LOWER] = 75000000,
 			[VDD_LOW] = 150000000,
-			[VDD_NOMINAL] = 300000000,
-			[VDD_HIGH] = 403000000},
+			[VDD_NOMINAL] = 300000000},
 	},
 };
 
