@@ -1706,6 +1706,7 @@ unsigned long reclaim_pages_from_list(struct list_head *page_list,
 
 	return nr_reclaimed;
 }
+EXPORT_SYMBOL_GPL(reclaim_pages_from_list);
 #endif
 
 /*

@@ -124,3 +124,4 @@ CFLAGS_backing-dev.o = -Wformat
 CFLAGS_page-writeback.o = -Wformat
 
 CFLAGS_kmemleak.o += -DCONFIG_DEBUG_FS
+obj-$(CONFIG_DAMON)		+= damon/
