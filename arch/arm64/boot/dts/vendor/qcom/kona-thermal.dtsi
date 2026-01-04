@@ -671,7 +671,7 @@
 		wake-capable-sensor;
 		trips {
 			gpuss0_trip0: gpuss0-trip0 {
-				temperature = <90000>;
+				temperature = <95000>;
 				hysteresis = <5000>;
 				type = "passive";
 			};
@@ -694,7 +694,7 @@
  		wake-capable-sensor;
  		trips {
  			gpuss1_trip0: gpuss1-trip0 {
- 				temperature = <90000>;
+ 				temperature = <95000>;
  				hysteresis = <5000>;
  				type = "passive";
  			};
