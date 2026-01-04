@@ -974,6 +974,8 @@ config HIGHATOMIC_PAGEBLOCKS
 
 source "mm/sec_mm/Kconfig"
 
+source "mm/damon/Kconfig"
+
 config FORCE_ALLOC_FROM_DMA_ZONE
 	bool "Force certain memory allocators to always return ZONE_DMA32 memory"
 	depends on ZONE_DMA32
