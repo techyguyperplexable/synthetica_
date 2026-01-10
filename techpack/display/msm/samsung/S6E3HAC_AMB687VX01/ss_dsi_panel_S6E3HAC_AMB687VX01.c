@@ -1302,7 +1302,7 @@ static struct dsi_panel_cmd_set *__ss_vrr(struct samsung_display_driver_data *vd
 	cur_rr = vrr->cur_refresh_rate;
 	cur_hs = vrr->cur_sot_hs_mode;
 
-	if (is_hmt && !(cur_rr >= 120 && cur_hs))
+	if (is_hmt && !(cur_rr == 120 && cur_hs))
 		LCD_ERR("error: HMT not in 120HZ@HS mode, cur: %dhz%s\n",
 				cur_rr, cur_hs ? "HS" : "NM");
 
@@ -2854,7 +2854,7 @@ static bool ss_check_support_mode(struct samsung_display_driver_data *vdd, enum 
 		break;
 
 	case CHECK_SUPPORT_BRIGHTDOT:
-		if (!(cur_rr >= 120 && cur_hs)) {
+		if (!(cur_rr == 120 && cur_hs)) {
 			is_support = false;
 			LCD_ERR("BRIGHT DOT fail: supported on 120HS(cur: %d%s)\n",
 					cur_rr, cur_hs ? "HS" : "NS");

@@ -781,7 +781,7 @@ struct dsi_panel_cmd_set *ss_brightness_gm2_gamma_comp(struct samsung_display_dr
 			id3, vdd->br_info.common_br.bl_level, cur_rr, poc_done);
 
 	if ((id3 > 0x19 || id3 < 0x16) || /* support ID3 0x16 ~ 0x19*/
-			(cur_rr < 120) || /* support for VRR 120HS */
+			(cur_rr != 120) || /* support for VRR 120HS */
 			poc_done) { /* Avoid comp if poc has done */
 		LCD_INFO("skip green weight\n");
 		return NULL;

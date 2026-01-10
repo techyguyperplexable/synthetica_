@@ -144,7 +144,7 @@ void dfps_update(struct samsung_display_driver_data *vdd, int fps)
 	struct dsi_panel_cmd_set *dpfs = ss_get_cmds(vdd, TX_DFPS);
 	u8 data = 0;
 
-	if (fps >= 120)
+	if (fps == 120)
 		data = 0x0D;
 	else if (fps == 96)
 		data = 0x0E;

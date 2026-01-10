@@ -215,7 +215,7 @@
 
 				qcom,mdss-dsi-panel-width = <800>; // 1600/2
 				qcom,mdss-dsi-panel-height = <2560>;
-				qcom,mdss-dsi-panel-framerate = <144>;
+				qcom,mdss-dsi-panel-framerate = <120>;
 				qcom,mdss-dsi-h-pulse-width = <2>;
 				qcom,mdss-dsi-h-back-porch = <30>;
 				qcom,mdss-dsi-h-front-porch = <84>;
@@ -224,7 +224,7 @@
 				qcom,mdss-dsi-v-back-porch = <7>;
 				qcom,mdss-dsi-v-front-porch = <26>;
 
-				qcom,mdss-dsi-panel-clockrate = <1197600000>;
+				qcom,mdss-dsi-panel-clockrate = <998000000>;
 				qcom,mdss-dsi-panel-phy-timings = [00 24 0A 0A
 												11
 												3E
