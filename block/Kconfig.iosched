@@ -5,7 +5,7 @@ menu "IO Schedulers"
 
 config MQ_IOSCHED_DEADLINE
 	tristate "MQ deadline I/O scheduler"
-	default n
+	default y
 	---help---
 	  MQ version of the deadline IO scheduler.
 
