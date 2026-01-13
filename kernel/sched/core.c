@@ -149,7 +149,7 @@ static void update_rq_clock_task(struct rq *rq, s64 delta)
 	 * the current rq->clock timestamp, except that would require using
 	 * atomic ops.
 	 */
-	if (irq_delta > delta)
+	if (unlikely(irq_delta > delta))
 		irq_delta = delta;
 
 	rq->prev_irq_time += irq_delta;
@@ -195,7 +195,7 @@ void update_rq_clock(struct rq *rq)
 #endif
 
 	delta = sched_clock_cpu(cpu_of(rq)) - rq->clock;
-	if (delta < 0)
+	if (unlikely(delta < 0))
 		return;
 	rq->clock += delta;
 	update_rq_clock_task(rq, delta);
