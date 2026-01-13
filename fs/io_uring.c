@@ -1969,13 +1969,11 @@ static unsigned io_cqring_events(struct io_cq_ring *ring)
  * application must reap them itself, as they reside on the shared cq ring.
  */
 static int io_cqring_wait(struct io_ring_ctx *ctx, int min_events,
-			  const sigset_t __user *sig, size_t sigsz)
+                          const sigset_t __user *sig, size_t sigsz)
 {
-	struct io_cq_ring *ring = ctx->cq_ring;
-	sigset_t ksigmask, sigsaved;
-	DEFINE_WAIT(wait);
-	int ret;
-
+        struct io_cq_ring *ring = ctx->cq_ring;
+        DEFINE_WAIT(wait);
+        int ret;
 	/* See comment at the top of this file */
 	smp_rmb();
 	if (io_cqring_events(ring) >= min_events)
@@ -1985,11 +1983,10 @@ static int io_cqring_wait(struct io_ring_ctx *ctx, int min_events,
 #ifdef CONFIG_COMPAT
 		if (in_compat_syscall())
 			ret = set_compat_user_sigmask((const compat_sigset_t __user *)sig,
-						      &ksigmask, &sigsaved, sigsz);
+						      sigsz);
 		else
 #endif
-			ret = set_user_sigmask(sig, &ksigmask,
-					       &sigsaved, sigsz);
+			ret = set_user_sigmask(sig, sigsz);
 
 		if (ret)
 			return ret;
@@ -2014,7 +2011,7 @@ static int io_cqring_wait(struct io_ring_ctx *ctx, int min_events,
 	finish_wait(&ctx->wait, &wait);
 
 	if (sig)
-		restore_user_sigmask(sig, &sigsaved);
+		restore_saved_sigmask_unless(ret == -EINTR);
 
 	return READ_ONCE(ring->r.head) == READ_ONCE(ring->r.tail) ? ret : 0;
 }
