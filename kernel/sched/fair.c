@@ -8275,7 +8275,7 @@ pick_next_task_fair(struct rq *rq, struct task_struct *prev, struct rq_flags *rf
 	int new_tasks;
 
 again:
-	if (!cfs_rq->nr_running)
+	if (unlikely(!cfs_rq->nr_running))
 		goto idle;
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
