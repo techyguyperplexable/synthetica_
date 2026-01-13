@@ -4296,4 +4296,63 @@ void kdb_send_sig(struct task_struct *t, int sig)
 	else
 		kdb_printf("Signal %d is sent to process %d.\n", sig, t->pid);
 }
-#endif	/* CONFIG_KGDB_KDB */
+#endif  /* CONFIG_KGDB_KDB */
+
+/**
+ * set_user_sigmask - wrapper for current->blocked and smp_mb__after_spinlock
+ * @umask: sigset_t __user to copy from
+ * @sigsetsize: size of sigset_t
+ *
+ * This is useful for versions of syscalls that pass in the sigmask and
+ * expect the current->sigmask to be changed during, and restored after,
+ * the execution of the syscall.
+ */
+int set_user_sigmask(const sigset_t __user *umask, size_t sigsetsize)
+{
+	sigset_t kmask;
+
+	if (!umask)
+		return 0;
+	if (sigsetsize != sizeof(sigset_t))
+		return -EINVAL;
+	if (copy_from_user(&kmask, umask, sizeof(sigset_t)))
+		return -EFAULT;
+
+	set_restore_sigmask();
+	current->saved_sigmask = current->blocked;
+	set_current_blocked(&kmask);
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(set_user_sigmask);
+
+#ifdef CONFIG_COMPAT
+/**
+ * set_compat_user_sigmask - wrapper for current->blocked and smp_mb__after_spinlock
+ * @umask: compat_sigset_t __user to copy from
+ * @sigsetsize: size of compat_sigset_t
+ *
+ * This is useful for versions of syscalls that pass in the sigmask and
+ * expect the current->sigmask to be changed during, and restored after,
+ * the execution of the syscall.
+ */
+int set_compat_user_sigmask(const compat_sigset_t __user *umask,
+			    size_t sigsetsize)
+{
+	sigset_t kmask;
+
+	if (!umask)
+		return 0;
+	if (sigsetsize != sizeof(compat_sigset_t))
+		return -EINVAL;
+	if (get_compat_sigset(&kmask, umask))
+		return -EFAULT;
+
+	set_restore_sigmask();
+	current->saved_sigmask = current->blocked;
+	set_current_blocked(&kmask);
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(set_compat_user_sigmask);
+#endif

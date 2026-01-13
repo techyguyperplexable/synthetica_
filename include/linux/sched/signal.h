@@ -10,6 +10,7 @@
 #include <linux/cred.h>
 #include <linux/android_kabi.h>
 #include <linux/mm.h>
+#include <linux/compat.h>
 #include <asm/ptrace.h>
 
 /*
@@ -416,6 +417,12 @@ static inline void ptrace_signal_wake_up(struct task_struct *t, bool resume)
 
 void task_join_group_stop(struct task_struct *task);
 
+extern int set_user_sigmask(const sigset_t __user *umask, size_t sigsetsize);
+#ifdef CONFIG_COMPAT
+extern int set_compat_user_sigmask(const compat_sigset_t __user *umask,
+				   size_t sigsetsize);
+#endif
+
 #ifdef TIF_RESTORE_SIGMASK
 /*
  * Legacy restore_sigmask accessors.  These are inefficient on
@@ -498,6 +505,14 @@ static inline void restore_saved_sigmask(void)
 {
 	if (test_and_clear_restore_sigmask())
 		__set_current_blocked(&current->saved_sigmask);
+}
+
+static inline void restore_saved_sigmask_unless(bool interrupted)
+{
+	if (interrupted)
+		WARN_ON(!test_thread_flag(TIF_SIGPENDING));
+	else
+		restore_saved_sigmask();
 }
 
 static inline sigset_t *sigmask_to_save(void)
