@@ -277,8 +277,8 @@ unsigned int sysctl_sched_cfs_bandwidth_slice		= 4000UL;
  *
  * (default: ~5%)
  */
-#define fits_capacity(cap, max)	((cap) * 1078 < (max) * 1024)
-unsigned int capacity_margin				= 1078;
+unsigned int sysctl_sched_capacity_margin			= 1078;
+#define fits_capacity(cap, max)	((cap) * sysctl_sched_capacity_margin < (max) * 1024)
 
 /*
  * ~8% margin for faster upmigration during gaming
