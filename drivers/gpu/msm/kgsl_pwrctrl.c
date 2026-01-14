@@ -32,6 +32,8 @@
 
 #define DEFAULT_BUS_P 50
 
+static unsigned int kgsl_bus_ab_scale_factor = DEFAULT_BUS_P;
+
 /* Order deeply matters here because reasons. New entries go on the end */
 static const char * const clocks[] = {
 	"src_clk",
@@ -151,7 +153,7 @@ static void _ab_buslevel_update(struct kgsl_pwrctrl *pwr,
 	if (ib == 0)
 		*ab = 0;
 	else if ((!pwr->bus_percent_ab) && (!pwr->bus_ab_mbytes))
-		*ab = DEFAULT_BUS_P * ib / 100;
+		*ab = kgsl_bus_ab_scale_factor * ib / 100;
 	else if (pwr->bus_width)
 		*ab = pwr->bus_ab_mbytes;
 	else
@@ -1498,6 +1500,33 @@ static DEVICE_ATTR_RW(gpuclk);
 static DEVICE_ATTR_RW(max_gpuclk);
 static DEVICE_ATTR_RW(idle_timer);
 static DEVICE_ATTR_RO(gpubusy);
+static ssize_t bus_ab_scale_factor_show(struct device *dev,
+					struct device_attribute *attr,
+					char *buf)
+{
+	return sprintf(buf, "%u\n", kgsl_bus_ab_scale_factor);
+}
+
+static ssize_t bus_ab_scale_factor_store(struct device *dev,
+					 struct device_attribute *attr,
+					 const char *buf, size_t count)
+{
+	unsigned int val;
+	int ret;
+
+	ret = kstrtouint(buf, 0, &val);
+	if (ret)
+		return ret;
+
+	if (val > 100)
+		return -EINVAL;
+
+	kgsl_bus_ab_scale_factor = val;
+	return count;
+}
+
+static DEVICE_ATTR_RW(bus_ab_scale_factor);
+
 static DEVICE_ATTR_RO(gpu_available_frequencies);
 static DEVICE_ATTR_RO(gpu_clock_stats);
 static DEVICE_ATTR_RW(max_pwrlevel);
@@ -1545,6 +1574,7 @@ static const struct attribute *pwrctrl_attr_list[] = {
 	&dev_attr_freq_table_mhz.attr,
 	&dev_attr_temp.attr,
 	&dev_attr_pwrscale.attr,
+	&dev_attr_bus_ab_scale_factor.attr,
 	NULL,
 };
 
