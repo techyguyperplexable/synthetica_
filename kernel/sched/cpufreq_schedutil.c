@@ -12,7 +12,7 @@
 
 #include "sched.h"
 
-#define IOWAIT_BOOST_MIN	(SCHED_CAPACITY_SCALE / 4)
+#define IOWAIT_BOOST_MIN_DEFAULT	(SCHED_CAPACITY_SCALE / 4)
 #define TOUCH_BOOST_DURATION_NS	150000000ULL
 #define TOUCH_BOOST_UTIL	(SCHED_CAPACITY_SCALE * 9 / 10)
 
@@ -115,6 +115,7 @@ static inline unsigned long sugov_apply_all_boosts(unsigned long util)
 struct sugov_tunables {
 	struct gov_attr_set	attr_set;
 	unsigned int		rate_limit_us;
+	unsigned int		iowait_boost_min;
 };
 
 struct sugov_policy {
@@ -425,7 +426,7 @@ static bool sugov_iowait_reset(struct sugov_cpu *sg_cpu, u64 time,
 	if (delta_ns <= TICK_NSEC)
 		return false;
 
-	sg_cpu->iowait_boost = set_iowait_boost ? IOWAIT_BOOST_MIN : 0;
+	sg_cpu->iowait_boost = set_iowait_boost ? sg_cpu->sg_policy->tunables->iowait_boost_min : 0;
 	sg_cpu->iowait_boost_pending = set_iowait_boost;
 
 	return true;
@@ -472,7 +473,7 @@ static void sugov_iowait_boost(struct sugov_cpu *sg_cpu, u64 time,
 	}
 
 	/* First wakeup after IO: start with minimum boost */
-	sg_cpu->iowait_boost = IOWAIT_BOOST_MIN;
+	sg_cpu->iowait_boost = sg_cpu->sg_policy->tunables->iowait_boost_min;
 }
 
 /**
@@ -509,7 +510,7 @@ static unsigned long sugov_iowait_apply(struct sugov_cpu *sg_cpu, u64 time,
 		 * No boost pending; reduce the boost value.
 		 */
 		sg_cpu->iowait_boost >>= 1;
-		if (sg_cpu->iowait_boost < IOWAIT_BOOST_MIN) {
+		if (sg_cpu->iowait_boost < sg_cpu->sg_policy->tunables->iowait_boost_min) {
 			sg_cpu->iowait_boost = 0;
 			return 0;
 		}
@@ -736,8 +737,32 @@ rate_limit_us_store(struct gov_attr_set *attr_set, const char *buf, size_t count
 
 static struct governor_attr rate_limit_us = __ATTR_RW(rate_limit_us);
 
+static ssize_t iowait_boost_min_show(struct gov_attr_set *attr_set, char *buf)
+{
+	struct sugov_tunables *tunables = to_sugov_tunables(attr_set);
+
+	return sprintf(buf, "%u\n", tunables->iowait_boost_min);
+}
+
+static ssize_t
+iowait_boost_min_store(struct gov_attr_set *attr_set, const char *buf, size_t count)
+{
+	struct sugov_tunables *tunables = to_sugov_tunables(attr_set);
+	unsigned int boost_min;
+
+	if (kstrtouint(buf, 10, &boost_min))
+		return -EINVAL;
+
+	tunables->iowait_boost_min = boost_min;
+
+	return count;
+}
+
+static struct governor_attr iowait_boost_min = __ATTR_RW(iowait_boost_min);
+
 static struct attribute *sugov_attributes[] = {
 	&rate_limit_us.attr,
+	&iowait_boost_min.attr,
 	NULL
 };
 
@@ -900,6 +925,7 @@ static int sugov_init(struct cpufreq_policy *policy)
 	}
 
 	tunables->rate_limit_us = 0;
+	tunables->iowait_boost_min = IOWAIT_BOOST_MIN_DEFAULT;
 
 	policy->governor_data = sg_policy;
 	sg_policy->tunables = tunables;
