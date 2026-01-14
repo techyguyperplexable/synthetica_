@@ -233,7 +233,8 @@ void tcp_time_wait(struct sock *sk, int state, int timeo);
 #define TCP_THIN_LINEAR_RETRIES 6       /* After 6 linear retries, do exp. backoff */
 
 /* TCP initial congestion window as per rfc6928 */
-#define TCP_INIT_CWND		44
+extern int sysctl_tcp_init_cwnd;
+#define TCP_INIT_CWND		sysctl_tcp_init_cwnd
 
 /* Bit Flags for sysctl_tcp_fastopen */
 #define	TFO_CLIENT_ENABLE	1

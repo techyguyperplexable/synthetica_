@@ -822,6 +822,13 @@ static struct ctl_table ipv4_net_table[] = {
 		.proc_handler	= proc_tcp_congestion_control,
 	},
 	{
+		.procname	= "tcp_init_cwnd",
+		.data		= &sysctl_tcp_init_cwnd,
+		.maxlen		= sizeof(int),
+		.mode		= 0644,
+		.proc_handler	= proc_dointvec,
+	},
+	{
 		.procname	= "tcp_keepalive_time",
 		.data		= &init_net.ipv4.sysctl_tcp_keepalive_time,
 		.maxlen		= sizeof(int),
