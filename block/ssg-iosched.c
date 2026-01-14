@@ -437,9 +437,11 @@ static struct request *ssg_dispatch_request(struct blk_mq_hw_ctx *hctx)
 	rq = __ssg_dispatch_request(ssg);
 	spin_unlock(&ssg->lock);
 
-	rqi = ssg_rq_info(ssg, rq);
-	if (likely(rqi))
-		rqi->data_size = blk_rq_bytes(rq);
+	if (rq) {
+		rqi = ssg_rq_info(ssg, rq);
+		if (likely(rqi))
+			rqi->data_size = blk_rq_bytes(rq);
+	}
 
 	return rq;
 }
