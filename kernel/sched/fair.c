@@ -236,6 +236,8 @@ enum sched_tunable_scaling sysctl_sched_tunable_scaling = SCHED_TUNABLESCALING_N
 unsigned int sysctl_sched_base_slice			= 1000000ULL;
 static unsigned int normalized_sysctl_sched_base_slice	= 1000000ULL;
 
+unsigned int sysctl_sched_wakeup_burst_ns		= 0UL;
+
 unsigned int sysctl_sched_migration_cost	= 0UL;
 DEFINE_PER_CPU_READ_MOSTLY(int, sched_load_boost);
 
@@ -4591,8 +4593,11 @@ place_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
 	u64 vslice, vruntime = avg_vruntime(cfs_rq);
 	s64 lag = 0;
 	    
-	if (!se->custom_slice)
+	if (!se->custom_slice) {
 		se->slice = sysctl_sched_base_slice;
+		if (flags & ENQUEUE_WAKEUP)
+			se->slice += sysctl_sched_wakeup_burst_ns;
+	}
 	vslice = calc_delta_fair(se->slice, se);
 
 	/*

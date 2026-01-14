@@ -525,6 +525,13 @@ static struct ctl_table kern_table[] = {
 	},
 #endif /* CONFIG_SMP */
 	{
+		.procname	= "sched_wakeup_burst_ns",
+		.data		= &sysctl_sched_wakeup_burst_ns,
+		.maxlen		= sizeof(unsigned int),
+		.mode		= 0644,
+		.proc_handler	= proc_dointvec,
+	},
+	{
 		.procname	= "sched_rt_period_us",
 		.data		= &sysctl_sched_rt_period,
 		.maxlen		= sizeof(unsigned int),
