@@ -96,6 +96,9 @@ void wbt_enable_default(struct request_queue *);
 u64 wbt_get_min_lat(struct request_queue *q);
 void wbt_set_min_lat(struct request_queue *q, u64 val);
 
+u64 wbt_get_window_nsec(struct request_queue *q);
+void wbt_set_window_nsec(struct request_queue *q, u64 nsec);
+
 void wbt_set_queue_depth(struct request_queue *, unsigned int);
 void wbt_set_write_cache(struct request_queue *, bool);
 

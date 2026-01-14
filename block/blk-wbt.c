@@ -713,6 +713,22 @@ void wbt_enable_default(struct request_queue *q)
 }
 EXPORT_SYMBOL_GPL(wbt_enable_default);
 
+u64 wbt_get_window_nsec(struct request_queue *q)
+{
+	struct rq_qos *rqos = wbt_rq_qos(q);
+	if (!rqos)
+		return 0;
+	return RQWB(rqos)->win_nsec;
+}
+
+void wbt_set_window_nsec(struct request_queue *q, u64 nsec)
+{
+	struct rq_qos *rqos = wbt_rq_qos(q);
+	if (!rqos)
+		return;
+	RQWB(rqos)->win_nsec = nsec;
+}
+
 u64 wbt_default_latency_nsec(struct request_queue *q)
 {
 	/*

@@ -434,6 +434,13 @@ static ssize_t queue_wb_lat_show(struct request_queue *q, char *page)
 	return sprintf(page, "%llu\n", div_u64(wbt_get_min_lat(q), 1000));
 }
 
+static ssize_t queue_wb_window_show(struct request_queue *q, char *page)
+{
+	if (!wbt_rq_qos(q))
+		return -EINVAL;
+	return sprintf(page, "%llu\n", div_u64(wbt_get_window_nsec(q), 1000));
+}
+
 static ssize_t queue_wb_lat_store(struct request_queue *q, const char *page,
 				  size_t count)
 {
@@ -472,6 +479,24 @@ static ssize_t queue_wb_lat_store(struct request_queue *q, const char *page,
 
 	blk_mq_unquiesce_queue(q);
 	blk_mq_unfreeze_queue(q);
+
+	return count;
+}
+
+static ssize_t queue_wb_window_store(struct request_queue *q, const char *page,
+				  size_t count)
+{
+	ssize_t ret;
+	u64 val;
+
+	ret = queue_var_store64(&val, page);
+	if (ret < 0)
+		return ret;
+
+	if (!wbt_rq_qos(q))
+		return -EINVAL;
+
+	wbt_set_window_nsec(q, val * 1000ULL);
 
 	return count;
 }
@@ -698,6 +723,12 @@ static struct queue_sysfs_entry queue_wb_lat_entry = {
 	.attr = {.name = "wbt_lat_usec", .mode = 0644 },
 	.show = queue_wb_lat_show,
 	.store = queue_wb_lat_store,
+};
+
+static struct queue_sysfs_entry queue_wb_window_entry = {
+	.attr = {.name = "wbt_window_usec", .mode = 0644 },
+	.show = queue_wb_window_show,
+	.store = queue_wb_window_store,
 };
 
 #ifdef CONFIG_BLK_DEV_THROTTLING_LOW
@@ -1113,6 +1144,7 @@ static struct attribute *default_attrs[] = {
 	&queue_fua_entry.attr,
 	&queue_dax_entry.attr,
 	&queue_wb_lat_entry.attr,
+	&queue_wb_window_entry.attr,
 	&queue_poll_delay_entry.attr,
 #ifdef CONFIG_BLK_DEV_THROTTLING_LOW
 	&throtl_sample_time_entry.attr,
