@@ -1409,14 +1409,14 @@ out:
 
 enomem:
 	/* alloc failed, nothing's initialized yet, free everything */
-	spin_lock_irq(&q->queue_lock);
+	spin_lock_irq(q->queue_lock);
 	list_for_each_entry(blkg, &q->blkg_list, q_node) {
 		if (blkg->pd[pol->plid]) {
 			pol->pd_free_fn(blkg->pd[pol->plid]);
 			blkg->pd[pol->plid] = NULL;
 		}
 	}
-	spin_unlock_irq(&q->queue_lock);
+	spin_unlock_irq(q->queue_lock);
 	ret = -ENOMEM;
 	goto out;
 }

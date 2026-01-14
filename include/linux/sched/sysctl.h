@@ -29,6 +29,8 @@ extern unsigned int sysctl_sched_min_granularity;
 extern unsigned int sysctl_sched_capacity_margin;
 extern unsigned int sysctl_sched_wakeup_burst_ns;
 extern unsigned int sysctl_sched_sync_hint_enable;
+extern unsigned int sysctl_sched_nr_migrate;
+extern unsigned int sysctl_sched_migration_cost;
 extern unsigned int sysctl_sched_cstate_aware;
 extern unsigned int sysctl_sched_force_lb_enable;
 
