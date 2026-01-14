@@ -6228,9 +6228,9 @@ static int zone_batchsize(struct zone *zone)
 	 * size of the zone.
 	 */
 	batch = zone->managed_pages / 1024;
-	/* But no more than a meg. */
-	if (batch * PAGE_SIZE > 1024 * 1024)
-		batch = (1024 * 1024) / PAGE_SIZE;
+	/* But no more than 4 megs. */
+	if (batch * PAGE_SIZE > 4 * 1024 * 1024)
+		batch = (4 * 1024 * 1024) / PAGE_SIZE;
 	batch /= 4;		/* We effectively *= 4 below */
 	if (batch < 1)
 		batch = 1;
