@@ -72,7 +72,11 @@ module_param(bss_entries_limit, int, 0644);
 MODULE_PARM_DESC(bss_entries_limit,
                  "limit to number of scan BSS entries (per wiphy, default 1000)");
 
-#define IEEE80211_SCAN_RESULT_EXPIRE	(30 * HZ)
+static int scan_result_expire = 30;
+module_param(scan_result_expire, int, 0644);
+MODULE_PARM_DESC(scan_result_expire, "scan result expiration time (seconds, default 30)");
+
+#define IEEE80211_SCAN_RESULT_EXPIRE	(scan_result_expire * HZ)
 
 static void bss_free(struct cfg80211_internal_bss *bss)
 {

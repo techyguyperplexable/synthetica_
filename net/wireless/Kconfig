@@ -136,6 +136,7 @@ config CFG80211_REG_CELLULAR_HINTS
 config CFG80211_REG_RELAX_NO_IR
 	bool "cfg80211 support for NO_IR relaxation"
 	depends on CFG80211_CERTIFICATION_ONUS
+	default y
 	---help---
 	 This option enables support for relaxation of the NO_IR flag for
 	 situations that certain regulatory bodies have provided clarifications
