@@ -637,7 +637,8 @@ static int ssg_request_merge(struct request_queue *q, struct request **rq,
 
 	__rq = elv_rb_find(&ssg->sort_list[bio_data_dir(bio)], sector);
 	if (__rq) {
-		BUG_ON(sector != blk_rq_pos(__rq));
+		if (WARN_ON_ONCE(sector != blk_rq_pos(__rq)))
+			return ELEVATOR_NO_MERGE;
 
 		if (elv_bio_merge_ok(__rq, bio)) {
 			*rq = __rq;
