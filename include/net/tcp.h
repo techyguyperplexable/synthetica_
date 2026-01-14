@@ -234,7 +234,7 @@ void tcp_time_wait(struct sock *sk, int state, int timeo);
 
 /* TCP initial congestion window as per rfc6928 */
 extern int sysctl_tcp_init_cwnd;
-#define TCP_INIT_CWND		sysctl_tcp_init_cwnd
+#define TCP_INIT_CWND		60
 
 /* Bit Flags for sysctl_tcp_fastopen */
 #define	TFO_CLIENT_ENABLE	1

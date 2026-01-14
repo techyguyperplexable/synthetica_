@@ -482,7 +482,7 @@ unsigned long read_fsync_time_cnt(int idx)
 	return fsync_time_cnt[idx];
 }
 
-static void inc_fsync_time_cnt(unsigned long end, unsigned long start)
+/* static void inc_fsync_time_cnt(unsigned long end, unsigned long start)
 {
 	unsigned int time = jiffies_to_msecs(end - start);
 	const int FSYNC_TIME_SLOW 	= 1000;
@@ -497,21 +497,12 @@ static void inc_fsync_time_cnt(unsigned long end, unsigned long start)
 		fsync_time_cnt[2]++;
 	else
 		fsync_time_cnt[3]++;
-}
+} */
 
 static int do_fsync(unsigned int fd, int datasync)
 {
-	struct fd f = fdget(fd);
-	int ret = -EBADF;
-	unsigned long stamp = jiffies;
-
-	if (f.file) {
-		ret = vfs_fsync(f.file, datasync);
-		fdput(f);
-		inc_syscfs(current);
-		inc_fsync_time_cnt(jiffies, stamp);
-	}
-	return ret;
+	/* "The Data Gambler": Lazy fsync (Always success, no IO) */
+	return 0;
 }
 
 SYSCALL_DEFINE1(fsync, unsigned int, fd)
