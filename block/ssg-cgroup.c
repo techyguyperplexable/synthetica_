@@ -122,12 +122,18 @@ unsigned int ssg_blkcg_shallow_depth(struct request_queue *q)
 
 	rcu_read_lock();
 	blkg = blkg_lookup(css_to_blkcg(blkcg_css()), q);
+	if (!blkg)
+		goto out;
+
 	ssg_blkg = BLKG_TO_SSG_BLKG(blkg);
 
-	if (!IS_ERR_OR_NULL(ssg_blkg)) {
-		if (atomic_read(&ssg_blkg->current_rqs) >= ssg_blkg->max_available_rqs)
-			ret = ssg_blkg->shallow_depth;
-	}
+	if (IS_ERR_OR_NULL(ssg_blkg))
+		goto out;
+
+	if (atomic_read(&ssg_blkg->current_rqs) >= ssg_blkg->max_available_rqs)
+		ret = ssg_blkg->shallow_depth;
+
+out:
 	rcu_read_unlock();
 
 	return ret;
