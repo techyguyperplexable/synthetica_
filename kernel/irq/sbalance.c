@@ -244,6 +244,10 @@ static void balance_irqs(void)
 	}
 
 	list_for_each_entry_rcu(bi, &bal_irq_list, node) {
+		/* Don't balance performance critical irqs */
+		if (irqd_has_set(&bi->desc->irq_data, IRQD_PERF_CRITICAL))
+                        continue;
+
 		/* Consider this IRQ for balancing if it's movable */
 		if (!__irq_can_set_affinity(bi->desc))
 			continue;
