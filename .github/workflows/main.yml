@@ -1,0 +1,123 @@
+name: Acacia Build & Notify
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build Release Type'
+        required: true
+        default: 'Normal'
+        type: choice
+        options:
+          - Test
+          - Normal
+      selinux_mode:
+        description: 'SELinux Mode'
+        required: true
+        default: 'Normal'
+        type: choice
+        options:
+          - Normal
+          - Permissive
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      # 1. Checkout
+      - name: Checkout Source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2. Install Dependencies
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y zstd jq curl zip
+
+      # 3. Configure Logic & Variables
+      - name: Setup Environment
+        id: config
+        run: |
+          # --- Handle SELinux Choice ---
+          # 1 = Enforcing(Normal), 2 = Permissive
+          if [[ "${{ inputs.selinux_mode }}" == "Permissive" ]]; then
+            echo "ACACIA_SELINUX=2" >> $GITHUB_ENV
+          else
+            echo "ACACIA_SELINUX=1" >> $GITHUB_ENV
+          fi
+
+          # --- Handle Test vs Normal Message ---
+          if [[ "${{ inputs.build_type }}" == "Test" ]]; then
+            MSG="**TEST BUILD NOTICE**%0AThis build might not boot or contain bugs. Flash at your own risk!"
+          else
+            MSG="**Stable Build**%0AFlash and enjoy."
+          fi
+          echo "BUILD_NOTE=$MSG" >> $GITHUB_ENV
+          
+          # Default Variant to 1 (Normal)
+          echo "ACACIA_VARIANT=1" >> $GITHUB_ENV
+
+      # 4. Execute Script
+      - name: Run Acacia Script
+        run: |
+          chmod +x acacia.sh
+          bash acacia.sh
+
+      # 5. Prepare Notification Data
+      - name: Prepare Telegram Message
+        id: tg_data
+        run: |
+          # Get Short Commit Hash
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          
+          # Generate Compare Link
+          REPO_URL="${{ github.server_url }}/${{ github.repository }}"
+          COMPARE_LINK="$REPO_URL/compare/HEAD^...HEAD"
+          
+          # Find the Zip file
+          ZIP_FILE=$(find . -maxdepth 1 -name "Acacia-*.zip" | head -n 1)
+          echo "ZIP_PATH=$ZIP_FILE" >> $GITHUB_ENV
+          
+          # Construct Caption
+          # We use github.actor to link to the profile of the person running the build
+          ACTOR_LINK="https://github.com/${{ github.actor }}"
+          
+          # Build the message string
+          CAPTION="${{ env.BUILD_NOTE }}%0A%0A"
+          CAPTION+="**Commit:** \`$COMMIT_HASH\`%0A"
+          CAPTION+="**By:** [${{ github.actor }}]($ACTOR_LINK) ❤️%0A"
+          CAPTION+="[View Changes]($COMPARE_LINK)"
+          
+          echo "TG_CAPTION=$CAPTION" >> $GITHUB_ENV
+
+      # 6. Upload to Telegram
+      - name: Upload to Telegram
+        if: success()
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        run: |
+          if [ -f "${{ env.ZIP_PATH }}" ]; then
+            curl -F chat_id="$CHAT_ID" \
+                 -F document=@"${{ env.ZIP_PATH }}" \
+                 -F caption="${{ env.TG_CAPTION }}" \
+                 -F parse_mode="Markdown" \
+                 "https://api.telegram.org/bot$TG_TOKEN/sendDocument"
+          else
+            echo "Error: Build file not found!"
+            exit 1
+          fi
+
+      # 7. Upload to GitHub Artifacts (Backup)
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Acacia-Build
+          path: |
+            *.zip
+            AnyKernel3/*.img
