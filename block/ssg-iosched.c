@@ -233,6 +233,8 @@ static void ssg_move_request(struct ssg_data *ssg, struct request *rq)
 {
 	const int data_dir = rq_data_dir(rq);
 
+	ssg->next_rq[READ] = NULL;
+	ssg->next_rq[WRITE] = NULL;
 	ssg->next_rq[data_dir] = ssg_latter_request(rq);
 
 	/*
