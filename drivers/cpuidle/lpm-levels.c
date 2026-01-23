@@ -709,6 +709,11 @@ static void clear_predict_history(void)
 
 static void update_history(struct cpuidle_device *dev, int idx);
 
+static inline uint64_t sched_lpm_disallowed_time(int cpu)
+{
+	return 0;
+}
+
 static inline bool lpm_disallowed(s64 sleep_us, int cpu, struct lpm_cpu *pm_cpu)
 {
 	uint64_t bias_time = 0;
