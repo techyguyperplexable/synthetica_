@@ -167,6 +167,7 @@ static int panel_state_notify(struct notifier_block *nb,
 		sleep_disabled = true;
 		wake_up_all_idle_cpus();
 		goto out;
+	case PANEL_LPM:
 	case PANEL_OFF:
 		sleep_disabled = false;
 		wake_up_all_idle_cpus();
