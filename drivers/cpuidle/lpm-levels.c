@@ -717,7 +717,7 @@ static int lpm_cpuidle_enter(struct cpuidle_device *dev,
 
 	sec_debug_cpu_lpm_log(dev->cpu, idx, 0, 1);
 	sec_debug_sched_msg("+Idle(%s)", cpu->levels[idx].name);
-	wfi();
+	cpu_do_idle();
 	success = true;
 	sec_debug_sched_msg("-Idle(%s)", cpu->levels[idx].name);
 
