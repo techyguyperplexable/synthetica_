@@ -9,7 +9,7 @@ LAST_SHA_FILE="$KERNEL_ROOT/.acacia_last_sha"
 
 # Directories
 TOOLCHAIN_PARENT_DIR="$KERNEL_ROOT/toolchains"
-LLVM_DIR="$TOOLCHAIN_PARENT_DIR/neutron-clang"
+LLVM_DIR="/usr"
 OUT_DIR="$KERNEL_ROOT/out"
 ANYKERNEL_DIR="$KERNEL_ROOT/AnyKernel3" 
 
@@ -137,27 +137,27 @@ done
 # --- Toolchain Setup ---
 info "Setting up toolchain"
 LLVM_PATH="$LLVM_DIR/bin/"
-API_URL="https://api.github.com/repos/Neutron-Toolchains/clang-build-catalogue/releases/latest"
-TEMP_ARCHIVE_PATH="$TOOLCHAIN_PARENT_DIR/neutron-clang.tar.zst"
+# API_URL="https://api.github.com/repos/Neutron-Toolchains/clang-build-catalogue/releases/latest"
+# TEMP_ARCHIVE_PATH="$TOOLCHAIN_PARENT_DIR/neutron-clang.tar.zst"
 
-if [ ! -d "$LLVM_DIR/bin" ]; then
-    info "Downloading Neutron Clang..."
-    mkdir -p "$LLVM_DIR"
-    DOWNLOAD_URL=$(curl -sL "$API_URL" | jq -r '.assets[] | select(.name | startswith("neutron-clang-") and endswith(".tar.zst")) | .browser_download_url')
-    
-    if [ -z "$DOWNLOAD_URL" ] || [ "$DOWNLOAD_URL" == "null" ]; then
-        echo "Error: Could not find download URL."
-        exit 1
-    fi
-
-    curl -L "$DOWNLOAD_URL" -o "$TEMP_ARCHIVE_PATH" || exit 1
-    tar -I 'zstd' -xvf "$TEMP_ARCHIVE_PATH" -C "$LLVM_DIR" --strip-components=1 || exit 1
-    rm -f "$TEMP_ARCHIVE_PATH"
-fi
+# if [ ! -d "$LLVM_DIR/bin" ]; then
+#     info "Downloading Neutron Clang..."
+#     mkdir -p "$LLVM_DIR"
+#     DOWNLOAD_URL=$(curl -sL "$API_URL" | jq -r '.assets[] | select(.name | startswith("neutron-clang-") and endswith(".tar.zst")) | .browser_download_url')
+#     
+#     if [ -z "$DOWNLOAD_URL" ] || [ "$DOWNLOAD_URL" == "null" ]; then
+#         echo "Error: Could not find download URL."
+#         exit 1
+#     fi
+# 
+#     curl -L "$DOWNLOAD_URL" -o "$TEMP_ARCHIVE_PATH" || exit 1
+#     tar -I 'zstd' -xvf "$TEMP_ARCHIVE_PATH" -C "$LLVM_DIR" --strip-components=1 || exit 1
+#     rm -f "$TEMP_ARCHIVE_PATH"
+# fi
 
 PATH="$LLVM_PATH:$PATH"
 HOST_BUILD_ENV="ARCH=arm64 CC=clang CROSS_COMPILE=aarch64-linux-gnu- LLVM=1 LLVM_IAS=1"
-KERNEL_MAKE_ENV="DTC_EXT=$KERNEL_ROOT/tools/dtc CONFIG_BUILD_ARM64_DT_OVERLAY=y"
+KERNEL_MAKE_ENV="DTC_EXT=/usr/bin/dtc CONFIG_BUILD_ARM64_DT_OVERLAY=y"
 
 # --- Build Start ---
 echo "Cleaning..."

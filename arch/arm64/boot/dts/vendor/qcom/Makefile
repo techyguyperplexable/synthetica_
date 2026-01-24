@@ -15,6 +15,8 @@ ifeq ($(CONFIG_BUILD_ARM64_DT_OVERLAY),y)
                 kona-xrsku4-overlay.dtbo \
                 kona-hdk-overlay.dtbo
 
+	dtb-$(CONFIG_ARCH_KONA) += kona.dtb kona-v2.dtb kona-v2.1.dtb
+
 kona-cdp-overlay.dtbo-base := kona-v2.1.dtb
 kona-cdp-lcd-overlay.dtbo-base := kona-v2.1.dtb
 kona-cdp-lcd-tron-overlay.dtbo-base := kona-v2.1.dtb

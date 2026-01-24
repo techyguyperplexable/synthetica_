@@ -706,14 +706,11 @@ KBUILD_AFLAGS   += -O3 -march=armv8.2-a+lse+crypto+dotprod
 
 KBUILD_CFLAGS   += -fno-trapping-math -fno-math-errno -ffp-contract=fast
 KBUILD_CFLAGS   += -mllvm -hot-cold-split=true
-KBUILD_CFLAGS   += -mllvm -regalloc-enable-advisor=release
 
 KBUILD_CFLAGS	+= -mllvm -inline-threshold=2500
 KBUILD_CFLAGS	+= -mllvm -inlinehint-threshold=2000
 KBUILD_CFLAGS	+= -mllvm -unroll-threshold=1200
 
-KBUILD_LDFLAGS  += -mllvm -regalloc-enable-advisor=release
-KBUILD_LDFLAGS  += -mllvm -enable-ml-inliner=release
 KBUILD_LDFLAGS  += -mllvm -mcpu=cortex-a55
 KBUILD_LDFLAGS  += --strip-debug
 
