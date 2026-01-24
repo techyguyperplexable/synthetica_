@@ -394,8 +394,8 @@
 	qcom,suspend-input-on-debug-batt;
 	qcom,fcc-stepping-enable;
 	qcom,smb-internal-pull-kohm = <0>;
-	qcom,thermal-mitigation = <8000000 7000000 6000000 5325000 4500000
-				4000000 3500000 3000000 2500000 2000000>;
+	qcom,thermal-mitigation = <5325000 4500000 4000000 3500000 3000000
+				2500000 2000000 1500000 1000000 500000>;
 };
 
 &pm8150b_fg {

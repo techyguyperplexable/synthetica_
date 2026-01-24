@@ -44,7 +44,7 @@
 		battery,ttf_dc45_charge_current = <7000>;
 
 		battery,max_charging_current = <2400>;
-		battery,max_charging_charge_power = <55000>; /* 45W */
+		battery,max_charging_charge_power = <45000>; /* 45W */
 
 		/* cycle, chg_float_voltage, recharge_condition_vcell, full_condition_vcell, full_condition_soc, step charging condition */
 		battery,age_data = <0 4350 4280 4250 93 45

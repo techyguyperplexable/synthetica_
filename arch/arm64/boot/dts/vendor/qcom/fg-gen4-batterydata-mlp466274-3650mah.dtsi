@@ -2,7 +2,7 @@ qcom,mlp466274_3650mah_averaged_masterslave_jan21st2019 {
 	/* #mlp466274_3650mAh_averaged_MasterSlave_Jan21st2019*/
 	qcom,max-voltage-uv = <4400000>;
 	qcom,fg-cc-cv-threshold-mv = <4390>;
-	qcom,fastchg-current-ma = <6000>;
+	qcom,fastchg-current-ma = <5325>;
 	qcom,batt-id-kohm = <44>;
 	/* COLD = 0 DegC, HOT = 55 DegC */
 	qcom,jeita-hard-thresholds = <0x58cd 0x181d>;
@@ -11,7 +11,7 @@ qcom,mlp466274_3650mah_averaged_masterslave_jan21st2019 {
 	/* COOL hys = 18 DegC, WARM hys = 42 DegC */
 	qcom,jeita-soft-hys-thresholds = <0x4206 0x23c0>;
 	qcom,jeita-fcc-ranges = <0  150  710000
-				151 450  6000000
+				151 450  5325000
 				451 550  1775000>;
 	qcom,jeita-fv-ranges = <0   150  4150000
 				151 450  4400000
