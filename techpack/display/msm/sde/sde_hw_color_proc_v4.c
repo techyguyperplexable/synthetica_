@@ -1,16 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2017-2026, The Linux Foundation. All rights reserved.
- * Copyright (c) 2018, Pal Zoltan Illes (tbalden) - kcal rgb
+ * Copyright (c) 2017-2020, The Linux Foundation. All rights reserved.
  */
-#include <linux/moduleparam.h>
-#include <linux/export.h>
 #include <drm/msm_drm_pp.h>
 #include "sde_hw_color_proc_common_v4.h"
 #include "sde_hw_color_proc_v4.h"
-
-extern unsigned int kcal_red, kcal_green, kcal_blue;
-extern unsigned int kcal_hue, kcal_sat, kcal_val, kcal_cont;
 
 static int sde_write_3d_gamut(struct sde_hw_blk_reg_map *hw,
 		struct drm_msm_3d_gamut *payload, u32 base,
@@ -110,11 +104,14 @@ void sde_setup_dspp_3d_gamutv4(struct sde_hw_dspp *ctx, void *cfg)
 	struct sde_hw_cp_cfg *hw_cfg = cfg;
 	u32 op_mode;
 
-	if (!ctx || !cfg)
+	if (!ctx || !cfg) {
+		DRM_ERROR("invalid param ctx %pK cfg %pK\n", ctx, cfg);
 		return;
+	}
 
 	op_mode = SDE_REG_READ(&ctx->hw, ctx->cap->sblk->gamut.base);
 	if (!hw_cfg->payload) {
+		DRM_DEBUG_DRIVER("disable gamut feature\n");
 		SDE_REG_WRITE(&ctx->hw, ctx->cap->sblk->gamut.base, 0);
 		return;
 	}
@@ -131,11 +128,14 @@ void sde_setup_dspp_3d_gamutv41(struct sde_hw_dspp *ctx, void *cfg)
 	struct sde_hw_cp_cfg *hw_cfg = cfg;
 	u32 op_mode;
 
-	if (!ctx || !cfg)
+	if (!ctx || !cfg) {
+		DRM_ERROR("invalid param ctx %pK cfg %pK\n", ctx, cfg);
 		return;
+	}
 
 	op_mode = SDE_REG_READ(&ctx->hw, ctx->cap->sblk->gamut.base);
 	if (!hw_cfg->payload) {
+		DRM_DEBUG_DRIVER("disable gamut feature\n");
 		SDE_REG_WRITE(&ctx->hw, ctx->cap->sblk->gamut.base, 0);
 		return;
 	}
@@ -153,52 +153,48 @@ void sde_setup_dspp_igcv3(struct sde_hw_dspp *ctx, void *cfg)
 	u32 *addr[IGC_TBL_NUM];
 	u32 offset = 0;
 
-	if (!ctx || !cfg || !hw_cfg->payload)
+	if (!ctx || !cfg) {
+		DRM_ERROR("invalid param ctx %pK cfg %pK\n", ctx, cfg);
 		return;
+	}
+
+	if (!hw_cfg->payload) {
+		DRM_DEBUG_DRIVER("disable igc feature\n");
+		SDE_REG_WRITE(&ctx->hw, IGC_OPMODE_OFF, 0);
+		return;
+	}
+
+	if (hw_cfg->len != sizeof(struct drm_msm_igc_lut)) {
+		DRM_ERROR("invalid size of payload len %d exp %zd\n",
+				hw_cfg->len, sizeof(struct drm_msm_igc_lut));
+		return;
+	}
 
 	lut_cfg = hw_cfg->payload;
+
 	addr[0] = lut_cfg->c0;
 	addr[1] = lut_cfg->c1;
 	addr[2] = lut_cfg->c2;
 
 	for (i = 0; i < IGC_TBL_NUM; i++) {
 		offset = IGC_C0_OFF + (i * sizeof(u32));
+
 		for (j = 0; j < IGC_TBL_LEN; j++) {
 			addr[i][j] &= IGC_DATA_MASK;
 			addr[i][j] |= IGC_DSPP_SEL_MASK(ctx->idx - 1);
 			if (j == 0)
 				addr[i][j] |= IGC_INDEX_UPDATE;
+			/* IGC lut registers are part of DSPP Top HW block */
 			SDE_REG_WRITE(&ctx->hw_top, offset, addr[i][j]);
 		}
 	}
-	SDE_REG_WRITE(&ctx->hw, IGC_OPMODE_OFF, IGC_EN);
-}
 
-static void _sde_apply_kcal(struct sde_hw_dspp *ctx)
-{
-	u32 base, opcode;
-	int kcal_min = 20;
-
-	if (kcal_red < kcal_min) kcal_red = kcal_min;
-	if (kcal_green < kcal_min) kcal_green = kcal_min;
-	if (kcal_blue < kcal_min) kcal_blue = kcal_min;
-	if (kcal_sat > 510) kcal_sat = 510;
-	if (kcal_val > 510) kcal_val = 510;
-	if (kcal_cont > 510) kcal_cont = 510;
-	if (kcal_hue > 1535) kcal_hue = 1535;
-
-	if (kcal_val > 450)
-		return;
-
-	base = ctx->cap->sblk->hsic.base;
-	if (base) {
-		opcode = SDE_REG_READ(&ctx->hw, base);
-		SDE_REG_WRITE(&ctx->hw, base + PA_HUE_OFF, kcal_hue & PA_HUE_MASK);
-		SDE_REG_WRITE(&ctx->hw, base + PA_SAT_OFF, kcal_sat & PA_SAT_MASK);
-		SDE_REG_WRITE(&ctx->hw, base + PA_VAL_OFF, kcal_val & PA_VAL_MASK);
-		SDE_REG_WRITE(&ctx->hw, base + PA_CONT_OFF, kcal_cont & PA_CONT_MASK);
-		SDE_REG_WRITE(&ctx->hw, base, opcode | PA_HUE_EN | PA_SAT_EN | PA_VAL_EN | PA_CONT_EN | PA_EN);
+	if (lut_cfg->flags & IGC_DITHER_ENABLE) {
+		SDE_REG_WRITE(&ctx->hw, IGC_DITHER_OFF,
+			lut_cfg->strength & IGC_DITHER_DATA_MASK);
 	}
+
+	SDE_REG_WRITE(&ctx->hw, IGC_OPMODE_OFF, IGC_EN);
 }
 
 void sde_setup_dspp_pccv4(struct sde_hw_dspp *ctx, void *cfg)
@@ -206,123 +202,197 @@ void sde_setup_dspp_pccv4(struct sde_hw_dspp *ctx, void *cfg)
 	struct sde_hw_cp_cfg *hw_cfg = cfg;
 	struct drm_msm_pcc *pcc_cfg;
 	struct drm_msm_pcc_coeff *coeffs = NULL;
-	u32 base;
-	int i;
+	int i = 0;
+	u32 base = 0;
 
-	if (!ctx || !cfg) return;
-
-	_sde_apply_kcal(ctx);
-
-	if (kcal_val > 450) {
-		if (hw_cfg->payload) {
-			pcc_cfg = hw_cfg->payload;
-			for (i = 0; i < PCC_NUM_PLANES; i++) {
-				base = ctx->cap->sblk->pcc.base + (i * sizeof(u32));
-				switch (i) {
-					case 0: coeffs = &pcc_cfg->r; break;
-					case 1: coeffs = &pcc_cfg->g; break;
-					case 2: coeffs = &pcc_cfg->b; break;
-				}
-				SDE_REG_WRITE(&ctx->hw, base + PCC_R_OFF, coeffs->r);
-				SDE_REG_WRITE(&ctx->hw, base + PCC_G_OFF, coeffs->g);
-				SDE_REG_WRITE(&ctx->hw, base + PCC_B_OFF, coeffs->b);
-				SDE_REG_WRITE(&ctx->hw, base + PCC_C_OFF, coeffs->c);
-				SDE_REG_WRITE(&ctx->hw, base + PCC_RG_OFF, coeffs->rg);
-				SDE_REG_WRITE(&ctx->hw, base + PCC_RB_OFF, coeffs->rb);
-				SDE_REG_WRITE(&ctx->hw, base + PCC_GB_OFF, coeffs->gb);
-				SDE_REG_WRITE(&ctx->hw, base + PCC_RGB_OFF, coeffs->rgb);
-			}
-			SDE_REG_WRITE(&ctx->hw, ctx->cap->sblk->pcc.base, 1);
-		} else {
-			SDE_REG_WRITE(&ctx->hw, ctx->cap->sblk->pcc.base, 0);
-		}
+	if (!ctx || !cfg) {
+		DRM_ERROR("invalid param ctx %pK cfg %pK\n", ctx, cfg);
 		return;
 	}
 
 	if (!hw_cfg->payload) {
+		DRM_DEBUG_DRIVER("disable pcc feature\n");
 		SDE_REG_WRITE(&ctx->hw, ctx->cap->sblk->pcc.base, 0);
 		return;
 	}
 
+	if (hw_cfg->len != sizeof(struct drm_msm_pcc)) {
+		DRM_ERROR("invalid size of payload len %d exp %zd\n",
+				hw_cfg->len, sizeof(struct drm_msm_pcc));
+		return;
+	}
+
 	pcc_cfg = hw_cfg->payload;
+
 	for (i = 0; i < PCC_NUM_PLANES; i++) {
 		base = ctx->cap->sblk->pcc.base + (i * sizeof(u32));
 		switch (i) {
-			case 0: coeffs = &pcc_cfg->r; break;
-			case 1: coeffs = &pcc_cfg->g; break;
-			case 2: coeffs = &pcc_cfg->b; break;
+		case 0:
+			coeffs = &pcc_cfg->r;
+			SDE_REG_WRITE(&ctx->hw,
+				base + PCC_RR_OFF, pcc_cfg->r_rr);
+			SDE_REG_WRITE(&ctx->hw,
+				base + PCC_GG_OFF, pcc_cfg->r_gg);
+			SDE_REG_WRITE(&ctx->hw,
+				base + PCC_BB_OFF, pcc_cfg->r_bb);
+			break;
+		case 1:
+			coeffs = &pcc_cfg->g;
+			SDE_REG_WRITE(&ctx->hw,
+				base + PCC_RR_OFF, pcc_cfg->g_rr);
+			SDE_REG_WRITE(&ctx->hw,
+				base + PCC_GG_OFF, pcc_cfg->g_gg);
+			SDE_REG_WRITE(&ctx->hw,
+				base + PCC_BB_OFF, pcc_cfg->g_bb);
+			break;
+		case 2:
+			coeffs = &pcc_cfg->b;
+			SDE_REG_WRITE(&ctx->hw,
+				base + PCC_RR_OFF, pcc_cfg->b_rr);
+			SDE_REG_WRITE(&ctx->hw,
+				base + PCC_GG_OFF, pcc_cfg->b_gg);
+			SDE_REG_WRITE(&ctx->hw,
+				base + PCC_BB_OFF, pcc_cfg->b_bb);
+			break;
+		default:
+			DRM_ERROR("invalid pcc plane: %d\n", i);
+			return;
 		}
-		SDE_REG_WRITE(&ctx->hw, base + PCC_R_OFF, (coeffs->r * kcal_red) / 256);
-		SDE_REG_WRITE(&ctx->hw, base + PCC_G_OFF, (coeffs->g * kcal_green) / 256);
-		SDE_REG_WRITE(&ctx->hw, base + PCC_B_OFF, (coeffs->b * kcal_blue) / 256);
+
 		SDE_REG_WRITE(&ctx->hw, base + PCC_C_OFF, coeffs->c);
+		SDE_REG_WRITE(&ctx->hw, base + PCC_R_OFF, coeffs->r);
+		SDE_REG_WRITE(&ctx->hw, base + PCC_G_OFF, coeffs->g);
+		SDE_REG_WRITE(&ctx->hw, base + PCC_B_OFF, coeffs->b);
 		SDE_REG_WRITE(&ctx->hw, base + PCC_RG_OFF, coeffs->rg);
 		SDE_REG_WRITE(&ctx->hw, base + PCC_RB_OFF, coeffs->rb);
 		SDE_REG_WRITE(&ctx->hw, base + PCC_GB_OFF, coeffs->gb);
 		SDE_REG_WRITE(&ctx->hw, base + PCC_RGB_OFF, coeffs->rgb);
 	}
-	SDE_REG_WRITE(&ctx->hw, ctx->cap->sblk->pcc.base, 1);
-}
 
-void sde_setup_dspp_pccv41(struct sde_hw_dspp *ctx, void *cfg)
-{
-	sde_setup_dspp_pccv4(ctx, cfg);
+	SDE_REG_WRITE(&ctx->hw, ctx->cap->sblk->pcc.base, PCC_EN);
 }
 
 void sde_setup_dspp_ltm_threshv1(struct sde_hw_dspp *ctx, void *cfg)
 {
 	struct sde_hw_cp_cfg *hw_cfg = cfg;
-	u64 thresh;
-	if (!ctx || !cfg || !hw_cfg->payload) return;
+	u64 thresh = 0;
+
+	if (!ctx || !cfg) {
+		DRM_ERROR("invalid parameters ctx %pK cfg %pK\n", ctx, cfg);
+		return;
+	}
+
+	if (!hw_cfg->payload) {
+		DRM_ERROR("invalid payload parameters for ltm thresh param\n");
+		return;
+	}
+
 	thresh = *((u64 *)hw_cfg->payload);
-	SDE_REG_WRITE(&ctx->hw, ctx->cap->sblk->ltm.base + 0x60, (thresh & 0x3FF));
+
+	SDE_REG_WRITE(&ctx->hw, ctx->cap->sblk->ltm.base + 0x60,
+			(thresh & 0x3FF));
 }
 
 void sde_setup_dspp_ltm_hist_bufferv1(struct sde_hw_dspp *ctx, u64 addr)
 {
-	struct drm_msm_ltm_stats_data *hist;
-	if (!ctx || !addr) return;
+	struct drm_msm_ltm_stats_data *hist = NULL;
+	u64 lh_addr, hs_addr;
+
+	if (!ctx || !addr) {
+		DRM_ERROR("invalid parameter ctx %pK addr 0x%llx\n", ctx, addr);
+		return;
+	}
+
 	hist = (struct drm_msm_ltm_stats_data *)addr;
-	SDE_REG_WRITE(&ctx->hw, ctx->cap->sblk->ltm.base + 0x70, (addr & 0xFFFFFF00));
-	SDE_REG_WRITE(&ctx->hw, ctx->cap->sblk->ltm.base + 0x74, ((u64)(&hist->stats_02[0]) & 0xFFFFFF00));
-	SDE_REG_WRITE(&ctx->hw, ctx->cap->sblk->ltm.base + 0x78, ((u64)(&hist->stats_03[0]) & 0xFFFFFF00));
+	lh_addr = (u64)(&hist->stats_02[0]);
+	hs_addr = (u64)(&hist->stats_03[0]);
+	SDE_REG_WRITE(&ctx->hw, ctx->cap->sblk->ltm.base + 0x70,
+			(addr & 0xFFFFFF00));
+	SDE_REG_WRITE(&ctx->hw, ctx->cap->sblk->ltm.base + 0x74,
+			(lh_addr & 0xFFFFFF00));
+	SDE_REG_WRITE(&ctx->hw, ctx->cap->sblk->ltm.base + 0x78,
+			(hs_addr & 0xFFFFFF00));
 }
 
-void sde_setup_dspp_ltm_hist_ctrlv1(struct sde_hw_dspp *ctx, void *cfg, bool enable, u64 addr)
+void sde_setup_dspp_ltm_hist_ctrlv1(struct sde_hw_dspp *ctx, void *cfg,
+				    bool enable, u64 addr)
 {
 	struct sde_hw_cp_cfg *hw_cfg = cfg;
 	struct sde_ltm_phase_info phase;
 	u32 op_mode, offset;
 
-	if (!ctx) return;
+	if (!ctx) {
+		DRM_ERROR("invalid parameters ctx %pK\n", ctx);
+		return;
+	}
+
+	if (enable && (!addr || !cfg)) {
+		DRM_ERROR("invalid addr 0x%llx cfg %pK\n", addr, cfg);
+		return;
+	}
+
 	offset = ctx->cap->sblk->ltm.base + 0x4;
 	op_mode = SDE_REG_READ(&ctx->hw, offset);
 
 	if (!enable) {
-		SDE_REG_WRITE(&ctx->hw, offset, (op_mode & BIT(1)) ? (op_mode & ~BIT(0)) : 0);
+		if (op_mode & BIT(1))
+			op_mode &= ~BIT(0);
+		else
+			op_mode = 0;
+
+		SDE_REG_WRITE(&ctx->hw, ctx->cap->sblk->ltm.base + 0x4,
+			(op_mode & 0x1FFFFFF));
 		return;
 	}
-	if (!addr || !cfg || ctx->idx >= DSPP_MAX) return;
+
+	if (ctx->idx >= DSPP_MAX) {
+		DRM_ERROR("Invalid idx %d\n", ctx->idx);
+		return;
+	}
 
 	memset(&phase, 0, sizeof(phase));
 	sde_ltm_get_phase_info(hw_cfg, &phase);
-	op_mode = phase.portrait_en ? (op_mode | BIT(2)) : (op_mode & ~BIT(2));
-	op_mode = phase.merge_en ? (op_mode | BIT(16)) : (op_mode & ~(BIT(16) | BIT(17)));
 
-	SDE_REG_WRITE(&ctx->hw, ctx->cap->sblk->ltm.base + 0x8, (phase.init_h[ctx->idx] & 0x7FFFFFF));
-	SDE_REG_WRITE(&ctx->hw, ctx->cap->sblk->ltm.base + 0xC, (phase.init_v & 0xFFFFFF));
-	SDE_REG_WRITE(&ctx->hw, ctx->cap->sblk->ltm.base + 0x10, (phase.inc_h & 0xFFFFFF));
-	SDE_REG_WRITE(&ctx->hw, ctx->cap->sblk->ltm.base + 0x14, (phase.inc_v & 0xFFFFFF));
+	if (phase.portrait_en)
+		op_mode |= BIT(2);
+	else
+		op_mode &= ~BIT(2);
 
+	if (phase.merge_en)
+		op_mode |= BIT(16);
+	else
+		op_mode &= ~(BIT(16) | BIT(17));
+
+	offset = ctx->cap->sblk->ltm.base + 0x8;
+	SDE_REG_WRITE(&ctx->hw, offset, (phase.init_h[ctx->idx] & 0x7FFFFFF));
+	offset += 4;
+	SDE_REG_WRITE(&ctx->hw, offset, (phase.init_v & 0xFFFFFF));
+	offset += 4;
+	SDE_REG_WRITE(&ctx->hw, offset, (phase.inc_h & 0xFFFFFF));
+	offset += 4;
+	SDE_REG_WRITE(&ctx->hw, offset, (phase.inc_v & 0xFFFFFF));
+
+	op_mode |= BIT(0);
 	sde_setup_dspp_ltm_hist_bufferv1(ctx, addr);
-	SDE_REG_WRITE(&ctx->hw, offset, (op_mode | BIT(0)) & 0x1FFFFFF);
+
+	SDE_REG_WRITE(&ctx->hw, ctx->cap->sblk->ltm.base + 0x4,
+			(op_mode & 0x1FFFFFF));
 }
 
 void sde_ltm_read_intr_status(struct sde_hw_dspp *ctx, u32 *status)
 {
 	u32 clear;
-	if (!ctx || !status) return;
+
+	if (!ctx || !status) {
+		DRM_ERROR("invalid parameters ctx %pK status %pK\n", ctx,
+				status);
+		return;
+	}
+
 	*status = SDE_REG_READ(&ctx->hw, ctx->cap->sblk->ltm.base + 0x54);
+	pr_debug("%s(): LTM interrupt status 0x%x\n", __func__, *status);
+	/* clear the hist_sat and hist_merge_sat bits */
 	clear = SDE_REG_READ(&ctx->hw, ctx->cap->sblk->ltm.base + 0x58);
-	SDE_REG_WRITE(&ctx->hw, ctx->cap->sblk->ltm.base + 0x58, clear | BIT(1) | BIT(2));
+	clear |= BIT(1) | BIT(2);
+	SDE_REG_WRITE(&ctx->hw, ctx->cap->sblk->ltm.base + 0x58, clear);
 }
