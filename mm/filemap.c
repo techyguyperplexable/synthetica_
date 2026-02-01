@@ -1572,7 +1572,7 @@ repeat:
 		if (unlikely(!page))
 			goto out;
 		if (radix_tree_exception(page)) {
-			if (radix_tree_deref_retry(page))
+			if (unlikely(radix_tree_deref_retry(page)))
 				goto repeat;
 			/*
 			 * A shadow entry of a recently evicted page,
@@ -1583,11 +1583,11 @@ repeat:
 		}
 
 		head = compound_head(page);
-		if (!page_cache_get_speculative(head))
+		if (unlikely(!page_cache_get_speculative(head)))
 			goto repeat;
 
 		/* The page was split under us? */
-		if (compound_head(page) != head) {
+		if (unlikely(compound_head(page) != head)) {
 			put_page(head);
 			goto repeat;
 		}
