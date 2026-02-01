@@ -72,7 +72,7 @@
 	"gHwFilterMode", \
 	0, \
 	3, \
-	1, \
+	0, \
 	CFG_VALUE_OR_DEFAULT, \
 	"hardware filter for DTIM mode")
 
@@ -215,7 +215,7 @@
 	"gOptimizedPowerManagement", \
 	0, \
 	1, \
-	1, \
+	0, \
 	CFG_VALUE_OR_DEFAULT, \
 	"Optimized Power Management")
 
