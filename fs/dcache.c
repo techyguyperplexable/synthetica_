@@ -1597,7 +1597,7 @@ struct dentry *__d_alloc(struct super_block *sb, const struct qstr *name)
 	int err;
 
 	dentry = kmem_cache_alloc(dentry_cache, GFP_KERNEL);
-	if (!dentry)
+	if (unlikely(!dentry))
 		return NULL;
 
 	/*
@@ -1615,7 +1615,7 @@ struct dentry *__d_alloc(struct super_block *sb, const struct qstr *name)
 		struct external_name *p = kmalloc(size + name->len,
 						  GFP_KERNEL_ACCOUNT |
 						  __GFP_RECLAIMABLE);
-		if (!p) {
+		if (unlikely(!p)) {
 			kmem_cache_free(dentry_cache, dentry); 
 			return NULL;
 		}
