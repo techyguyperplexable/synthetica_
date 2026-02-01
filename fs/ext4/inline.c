@@ -499,7 +499,7 @@ static int ext4_read_inline_page(struct inode *inode, struct page *page)
 	}
 
 	ret = ext4_get_inode_loc(inode, &iloc);
-	if (ret)
+	if (unlikely(ret))
 		goto out;
 
 	len = min_t(size_t, ext4_get_inline_size(inode), i_size_read(inode));
