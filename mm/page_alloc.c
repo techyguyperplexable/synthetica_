@@ -4599,7 +4599,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
 {
 	bool can_direct_reclaim = gfp_mask & __GFP_DIRECT_RECLAIM;
 	bool can_compact = gfp_compaction_allowed(gfp_mask);
-	const bool costly_order = order > PAGE_ALLOC_COSTLY_ORDER;
+	const bool costly_order = unlikely(order > PAGE_ALLOC_COSTLY_ORDER);
 	struct page *page = NULL;
 	unsigned int alloc_flags;
 	unsigned long did_some_progress = 0;
