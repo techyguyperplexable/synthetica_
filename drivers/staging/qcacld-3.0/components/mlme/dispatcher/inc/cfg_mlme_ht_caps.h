@@ -73,7 +73,7 @@
  */
 #define CFG_RX_LDPC_ENABLE CFG_INI_BOOL( \
 		"gEnableRXLDPC", \
-		0, \
+		1, \
 		"Rx LDPC capability")
 
 /*
@@ -95,7 +95,7 @@
  */
 #define CFG_TX_STBC_ENABLE CFG_INI_BOOL( \
 		"gEnableTXSTBC", \
-		0, \
+		1, \
 		"Tx STBC capability")
 
 /*
@@ -370,7 +370,7 @@
 	"ght_mpdu_density", \
 	0, \
 	7, \
-	7, \
+	0, \
 	CFG_VALUE_OR_DEFAULT, \
 	"MPDU Density")
 
