@@ -255,7 +255,7 @@
  */
 #define CFG_LFR_EARLY_STOP_SCAN_ENABLE CFG_INI_BOOL( \
 	"gEnableEarlyStopScan", \
-	0, \
+	1, \
 	"Set early stop scan")
 
 /*
@@ -1201,7 +1201,7 @@
  */
 #define CFG_LFR_FEATURE_ENABLED CFG_INI_BOOL( \
 	"FastRoamEnabled", \
-	0, \
+	1, \
 	"Enable fast roaming")
 
 /*
