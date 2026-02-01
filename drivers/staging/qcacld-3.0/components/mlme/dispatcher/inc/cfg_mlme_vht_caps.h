@@ -422,7 +422,7 @@
  */
 #define CFG_VHT_ENABLE_MU_BFORMEE_CAP_FEATURE CFG_INI_BOOL( \
 		"gEnableMuBformee", \
-		0, \
+		1, \
 		"VHT Enable MU Beamformee")
 
 /*
