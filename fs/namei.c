@@ -2037,7 +2037,7 @@ static inline int step_into(struct nameidata *nd, struct path *path,
 	}
 	/* make sure that d_is_symlink above matches inode */
 	if (nd->flags & LOOKUP_RCU) {
-		if (read_seqcount_retry(&path->dentry->d_seq, seq))
+		if (unlikely(read_seqcount_retry(&path->dentry->d_seq, seq)))
 			return -ECHILD;
 	}
 	return pick_link(nd, path, inode, seq);
@@ -2071,7 +2071,7 @@ static int walk_component(struct nameidata *nd, int flags)
 #endif
 		path.dentry = lookup_slow(&nd->last, nd->path.dentry,
 					  nd->flags);
-		if (IS_ERR(path.dentry))
+		if (unlikely(IS_ERR(path.dentry)))
 			return PTR_ERR(path.dentry);
 
 		path.mnt = nd->path.mnt;
