@@ -2347,12 +2347,12 @@ static int link_path_walk(const char *name, struct nameidata *nd)
 		int type;
 
 		err = may_lookup(nd);
-		if (err)
+		if (unlikely(err))
 			return err;
 
 #ifdef CONFIG_KSU_SUSFS_SUS_PATH
 		dentry = nd->path.dentry;
-		if (dentry->d_inode && susfs_is_inode_sus_path(dentry->d_inode)) {
+		if (dentry->d_inode && unlikely(susfs_is_inode_sus_path(dentry->d_inode))) {
 			// - No need to dput() here
 			// - return -ENOENT here since it is walking the sub path of sus path
 			return -ENOENT;
@@ -2384,7 +2384,7 @@ static int link_path_walk(const char *name, struct nameidata *nd)
 				name = this.name;
 			}
 #ifdef CONFIG_KSU_SUSFS_SUS_PATH
-			if (nd->state & ND_STATE_LAST_SDCARD_SUS_PATH) {
+			if (unlikely(nd->state & ND_STATE_LAST_SDCARD_SUS_PATH)) {
 				// return -ENOENT here since it is walking the sub path of sus sdcard path
 				return -ENOENT;
 			}
