@@ -1646,7 +1646,7 @@ restart:
 		if ((bh = bh_use[ra_ptr++]) == NULL)
 			goto next;
 		wait_on_buffer(bh);
-		if (!buffer_uptodate(bh)) {
+		if (unlikely(!buffer_uptodate(bh))) {
 			EXT4_ERROR_INODE(dir, "reading directory lblock %lu",
 					 (unsigned long) block);
 			brelse(bh);
