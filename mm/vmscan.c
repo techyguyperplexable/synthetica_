@@ -7015,7 +7015,7 @@ kswapd_try_sleep:
 		 * We can speed up thawing tasks if we don't call balance_pgdat
 		 * after returning from the refrigerator
 		 */
-		if (ret)
+		if (unlikely(ret))
 			continue;
 
 		/*
