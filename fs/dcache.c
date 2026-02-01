@@ -2167,13 +2167,13 @@ seqretry:
 		seq = raw_seqcount_begin(&dentry->d_seq);
 		if (dentry->d_parent != parent)
 			continue;
-		if (d_unhashed(dentry))
-			continue;
 
 		if (unlikely(parent->d_flags & DCACHE_OP_COMPARE)) {
 			int tlen;
 			const char *tname;
 			if (dentry->d_name.hash != hashlen_hash(hashlen))
+				continue;
+			if (d_unhashed(dentry))
 				continue;
 			tlen = dentry->d_name.len;
 			tname = dentry->d_name.name;
@@ -2187,6 +2187,8 @@ seqretry:
 				continue;
 		} else {
 			if (dentry->d_name.hash_len != hashlen)
+				continue;
+			if (d_unhashed(dentry))
 				continue;
 			if (dentry_cmp(dentry, str, hashlen_len(hashlen)) != 0)
 				continue;
