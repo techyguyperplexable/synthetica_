@@ -50,7 +50,7 @@ static ssize_t ext4_dax_read_iter(struct kiocb *iocb, struct iov_iter *to)
 	 * Recheck under inode lock - at this point we are sure it cannot
 	 * change anymore
 	 */
-	if (!IS_DAX(inode)) {
+	if (unlikely(!IS_DAX(inode))) {
 		inode_unlock_shared(inode);
 		/* Fallback to buffered IO in case we cannot support DAX */
 		return generic_file_read_iter(iocb, to);
@@ -98,7 +98,7 @@ static int ext4_release_file(struct inode *inode, struct file *filp)
 		ext4_discard_preallocations(inode);
 		up_write(&EXT4_I(inode)->i_data_sem);
 	}
-	if (is_dx(inode) && filp->private_data)
+	if (unlikely(is_dx(inode)) && filp->private_data)
 		ext4_htree_free_dir_info(filp->private_data);
 
 	return 0;
