@@ -43,7 +43,7 @@
  */
 #define CFG_ENABLE_IMPS CFG_INI_BOOL( \
 		"gEnableImps", \
-		1,\
+		0,\
 		"Enable/disable IMPS")
 
 /*
@@ -65,7 +65,7 @@
  */
 #define CFG_ENABLE_PS  CFG_INI_BOOL( \
 		"gEnableBmps", \
-		1,\
+		0,\
 		"Enable/disable BMPS")
 
 /*
