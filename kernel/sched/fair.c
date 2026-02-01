@@ -7110,7 +7110,7 @@ again:
 		goto idle;
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
-	if (prev->sched_class != &fair_sched_class)
+	if (unlikely(prev->sched_class != &fair_sched_class))
 		goto simple;
 
 	/*
