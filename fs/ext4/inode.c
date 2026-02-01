@@ -4161,12 +4161,12 @@ static int __ext4_block_zero_page_range(handle_t *handle,
 	if (PageUptodate(page))
 		set_buffer_uptodate(bh);
 
-	if (!buffer_uptodate(bh)) {
+	if (unlikely(!buffer_uptodate(bh))) {
 		err = -EIO;
 		ll_rw_block(REQ_OP_READ, 0, 1, &bh);
 		wait_on_buffer(bh);
 		/* Uhhuh. Read error. Complain and punt. */
-		if (!buffer_uptodate(bh))
+		if (unlikely(!buffer_uptodate(bh)))
 			goto unlock;
 		if (fscrypt_inode_uses_fs_layer_crypto(inode)) {
 			/* We expect the key to be set. */
