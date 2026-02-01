@@ -5920,7 +5920,7 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
                 cfs_rq->idle_h_nr_running += idle_h_nr_running;
 
 		/* end evaluation on encountering a throttled cfs_rq */
-		if (cfs_rq_throttled(cfs_rq))
+		if (unlikely(cfs_rq_throttled(cfs_rq)))
 			goto enqueue_throttle;
 
 		flags = ENQUEUE_WAKEUP;
@@ -5936,7 +5936,7 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
 		cfs_rq->idle_h_nr_running += idle_h_nr_running;
 
 		/* end evaluation on encountering a throttled cfs_rq */
-		if (cfs_rq_throttled(cfs_rq))
+		if (unlikely(cfs_rq_throttled(cfs_rq)))
 			goto enqueue_throttle;
 	}
 
