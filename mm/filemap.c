@@ -2252,7 +2252,7 @@ find_page:
 					ra, filp, page,
 					index, last_index - index);
 		}
-		if (!PageUptodate(page)) {
+		if (unlikely(!PageUptodate(page))) {
 			if (iocb->ki_flags & IOCB_NOWAIT) {
 				put_page(page);
 				goto would_block;
