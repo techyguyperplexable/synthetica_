@@ -3631,7 +3631,7 @@ static inline bool zone_watermark_fast(struct zone *z, unsigned int order,
 	 * Fast check for order-0 only. If this fails then the reserves
 	 * need to be calculated.
 	 */
-	if (!order) {
+	if (likely(!order)) {
 		long usable_free;
 		long reserved;
 
@@ -3640,7 +3640,7 @@ static inline bool zone_watermark_fast(struct zone *z, unsigned int order,
 
 		/* reserved may over estimate high-atomic reserves. */
 		usable_free -= min(usable_free, reserved);
-		if (usable_free > mark + z->lowmem_reserve[classzone_idx])
+		if (likely(usable_free > mark + z->lowmem_reserve[classzone_idx]))
 			return true;
 	}
 
