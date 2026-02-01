@@ -5385,7 +5385,7 @@ static int netif_receive_skb_internal(struct sk_buff *skb)
 
 	net_timestamp_check(READ_ONCE(netdev_tstamp_prequeue), skb);
 
-	if (skb_defer_rx_timestamp(skb))
+	if (unlikely(skb_defer_rx_timestamp(skb)))
 		return NET_RX_SUCCESS;
 
 	rcu_read_lock();
