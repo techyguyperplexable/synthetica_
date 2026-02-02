@@ -31,6 +31,43 @@ extern bool sched_ui_boost_mode(void);
 static bool compaction_boost_enabled = true;
 static unsigned int compaction_boost_order_threshold = 3;
 
+static DEFINE_PER_CPU(u64, compact_stall_count);
+static DEFINE_PER_CPU(u64, compact_stall_time_ns);
+static DEFINE_PER_CPU(u64, compact_success_count);
+static DEFINE_PER_CPU(u64, compact_fail_count);
+static DEFINE_PER_CPU(unsigned long, compact_efficiency_pct);
+
+static inline void track_compaction_stall(u64 duration_ns)
+{
+	int cpu = raw_smp_processor_id();
+
+	per_cpu(compact_stall_count, cpu)++;
+	per_cpu(compact_stall_time_ns, cpu) += duration_ns;
+}
+
+static inline void track_compaction_result(bool success)
+{
+	int cpu = raw_smp_processor_id();
+	u64 total, success_cnt;
+
+	if (success)
+		per_cpu(compact_success_count, cpu)++;
+	else
+		per_cpu(compact_fail_count, cpu)++;
+
+	total = per_cpu(compact_success_count, cpu) + per_cpu(compact_fail_count, cpu);
+	success_cnt = per_cpu(compact_success_count, cpu);
+
+	if (total > 0)
+		per_cpu(compact_efficiency_pct, cpu) = (success_cnt * 100) / total;
+}
+
+unsigned long get_compaction_efficiency(void)
+{
+	return this_cpu_read(compact_efficiency_pct);
+}
+EXPORT_SYMBOL_GPL(get_compaction_efficiency);
+
 static inline bool should_defer_compaction(void)
 {
 	if (!compaction_boost_enabled)
@@ -2321,6 +2358,7 @@ static enum compact_result compact_zone_order(struct zone *zone, int order,
 		struct page **capture)
 {
 	enum compact_result ret;
+	u64 start_ts = ktime_get_ns();
 	struct compact_control cc = {
 		.order = order,
 		.search_order = order,
@@ -2350,6 +2388,9 @@ static enum compact_result compact_zone_order(struct zone *zone, int order,
 
 	*capture = capc.page;
 	current->capture_control = NULL;
+
+	track_compaction_stall(ktime_get_ns() - start_ts);
+	track_compaction_result(ret == COMPACT_SUCCESS);
 
 	return ret;
 }
