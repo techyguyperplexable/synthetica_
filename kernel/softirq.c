@@ -58,6 +58,103 @@ static struct softirq_action softirq_vec[NR_SOFTIRQS] __cacheline_aligned_in_smp
 
 DEFINE_PER_CPU(struct task_struct *, ksoftirqd);
 
+static DEFINE_PER_CPU(u64, softirq_entry_count);
+static DEFINE_PER_CPU(u64, softirq_time_ns);
+static DEFINE_PER_CPU(u64, softirq_ksoftirqd_count);
+static DEFINE_PER_CPU(u64, softirq_sample_ts);
+static DEFINE_PER_CPU(unsigned long, softirq_rate);
+static DEFINE_PER_CPU(unsigned long, softirq_avg_time_us);
+
+#define SOFTIRQ_SAMPLE_PERIOD_NS	(10 * NSEC_PER_MSEC)
+#define SOFTIRQ_RATE_DECAY_SHIFT	3
+#define SOFTIRQ_HIGH_RATE		5000
+#define SOFTIRQ_HIGH_TIME_US		500
+#define SOFTIRQ_DEFER_THRESHOLD		8
+
+static bool softirq_adaptive_defer __read_mostly = true;
+static unsigned int softirq_time_limit_us __read_mostly = 2000;
+
+static inline void track_softirq_entry(void)
+{
+	this_cpu_inc(softirq_entry_count);
+}
+
+static inline void track_softirq_time(u64 time_ns)
+{
+	int cpu = raw_smp_processor_id();
+	u64 now = ktime_get_ns();
+	u64 delta;
+
+	per_cpu(softirq_time_ns, cpu) += time_ns;
+
+	delta = now - per_cpu(softirq_sample_ts, cpu);
+	if (delta >= SOFTIRQ_SAMPLE_PERIOD_NS) {
+		u64 entries = per_cpu(softirq_entry_count, cpu);
+		u64 total_time = per_cpu(softirq_time_ns, cpu);
+		unsigned long rate, avg_us;
+
+		rate = div64_u64(entries * NSEC_PER_SEC, delta);
+		per_cpu(softirq_rate, cpu) =
+			(per_cpu(softirq_rate, cpu) *
+			 ((1 << SOFTIRQ_RATE_DECAY_SHIFT) - 1) + rate) >>
+			SOFTIRQ_RATE_DECAY_SHIFT;
+
+		if (entries > 0) {
+			avg_us = div64_u64(total_time, entries) / NSEC_PER_USEC;
+			per_cpu(softirq_avg_time_us, cpu) =
+				(per_cpu(softirq_avg_time_us, cpu) * 7 + avg_us) >> 3;
+		}
+
+		per_cpu(softirq_entry_count, cpu) = 0;
+		per_cpu(softirq_time_ns, cpu) = 0;
+		per_cpu(softirq_sample_ts, cpu) = now;
+	}
+}
+
+static inline void track_ksoftirqd_wakeup(void)
+{
+	this_cpu_inc(softirq_ksoftirqd_count);
+}
+
+static inline bool softirq_rate_high(void)
+{
+	return this_cpu_read(softirq_rate) > SOFTIRQ_HIGH_RATE;
+}
+
+static inline bool softirq_time_high(void)
+{
+	return this_cpu_read(softirq_avg_time_us) > SOFTIRQ_HIGH_TIME_US;
+}
+
+static inline bool should_defer_to_ksoftirqd(int count)
+{
+	if (!softirq_adaptive_defer)
+		return false;
+
+	if (count > SOFTIRQ_DEFER_THRESHOLD)
+		return true;
+
+	return softirq_rate_high() && softirq_time_high();
+}
+
+unsigned long get_softirq_rate(void)
+{
+	return this_cpu_read(softirq_rate);
+}
+EXPORT_SYMBOL_GPL(get_softirq_rate);
+
+unsigned long get_softirq_avg_time_us(void)
+{
+	return this_cpu_read(softirq_avg_time_us);
+}
+EXPORT_SYMBOL_GPL(get_softirq_avg_time_us);
+
+unsigned long get_ksoftirqd_wakeup_count(void)
+{
+	return this_cpu_read(softirq_ksoftirqd_count);
+}
+EXPORT_SYMBOL_GPL(get_ksoftirqd_wakeup_count);
+
 const char * const softirq_to_name[NR_SOFTIRQS] = {
 	"HI", "TIMER", "NET_TX", "NET_RX", "BLOCK", "IRQ_POLL",
 	"TASKLET", "SCHED", "HRTIMER", "RCU"
