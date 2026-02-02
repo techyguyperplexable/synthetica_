@@ -250,7 +250,7 @@
 
 #define CFG_HE_LDPC CFG_BOOL( \
 				"he_ldpc", \
-				1, \
+				0, \
 				"He Ldpc")
 
 #define CFG_HE_LTF_PPDU CFG_UINT( \
@@ -279,12 +279,12 @@
 
 #define CFG_HE_TX_STBC_LT80 CFG_BOOL( \
 				"he_tx_stbc_lt80_sta", \
-				1, \
+				0, \
 				"He Tx Stbc Lt80")
 
 #define CFG_HE_RX_STBC_LT80 CFG_BOOL( \
 				"he_rx_stbc_lt80", \
-				1, \
+				0, \
 				"He Rx Stbc Lt80")
 
 #define CFG_HE_DOPPLER CFG_UINT( \
@@ -313,22 +313,22 @@
 
 #define CFG_HE_MU_PPDU CFG_BOOL( \
 				"he_mu_ppdu", \
-				1, \
+				0, \
 				"He Mu Ppdu")
 
 #define CFG_HE_SU_BEAMFORMER CFG_BOOL( \
 				"he_su_beamformer", \
-				1, \
+				0, \
 				"He Su Beamformer")
 
 #define CFG_HE_SU_BEAMFORMEE CFG_BOOL( \
 				"he_su_beamformee", \
-				1, \
+				0, \
 				"He Su Beamformee")
 
 #define CFG_HE_MU_BEAMFORMER CFG_BOOL( \
 				"he_mu_beamformer", \
-				1, \
+				0, \
 				"He Mu Beamformer")
 
 #define CFG_HE_BFEE_STS_LT80 CFG_UINT( \
@@ -431,12 +431,12 @@
 
 #define CFG_HE_RX_STBC_GT80 CFG_BOOL( \
 				"he_rx_stbc_gt80", \
-				1, \
+				0, \
 				"He Rx Stbc Gt80")
 
 #define CFG_HE_TX_STBC_GT80 CFG_BOOL( \
 				"he_Tx_stbc_gt80", \
-				1, \
+				0, \
 				"He Tx Stbc Gt80")
 
 #define CFG_HE_ER_4x_LTF_GI CFG_BOOL( \
@@ -712,7 +712,7 @@
 				"he_ul_mumimo", \
 				0, \
 				3, \
-				3, \
+				0, \
 				CFG_VALUE_OR_DEFAULT, \
 				"He Ul Mumimo")
 
