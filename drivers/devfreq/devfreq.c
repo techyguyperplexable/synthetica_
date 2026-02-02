@@ -1129,15 +1129,6 @@ static ssize_t available_governors_show(struct device *d,
 	struct devfreq *df = to_devfreq(d);
 	ssize_t count = 0;
 
-	if (strstr(dev_name(df->dev.parent), "kgsl"))
-		return sprintf(buf, "%s\n", "msm-adreno-tz");
-
-	mutex_lock(&devfreq_list_lock);
-
-	/*
-	 * The devfreq with immutable governor (e.g., passive) shows
-	 * only own governor.
-	 */
 	if (df->governor && df->governor->immutable) {
 		count = scnprintf(&buf[count], DEVFREQ_NAME_LEN,
 				   "%s ", df->governor_name);
