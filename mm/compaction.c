@@ -2028,6 +2028,13 @@ enum compact_result compaction_suitable(struct zone *zone, int order,
 	enum compact_result ret;
 	int fragindex;
 
+	/*
+	 * During UI critical events (scrolling, app launch), defer compaction
+	 * for high-order allocations to prevent stutter.
+	 */
+	if (should_defer_compaction() && order > 0)
+		return COMPACT_SKIPPED;
+
 	ret = __compaction_suitable(zone, order, alloc_flags, classzone_idx,
 				    zone_page_state(zone, NR_FREE_PAGES));
 	/*
