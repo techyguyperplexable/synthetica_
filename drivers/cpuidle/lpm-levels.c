@@ -155,26 +155,27 @@ static int panel_state_notify(struct notifier_block *nb,
 	unsigned int state;
 
 	if (val != PANEL_EVENT_STATE_CHANGED)
-		return 0;
+		return NOTIFY_OK;
 
-	if (evdata)
-		state = evdata->state;
-	else
-		goto out;
+	if (!evdata)
+		return NOTIFY_OK;
+
+	state = evdata->state;
 
 	switch (state) {
 	case PANEL_ON:
 		sleep_disabled = true;
 		wake_up_all_idle_cpus();
-		goto out;
+		break;
 	case PANEL_LPM:
 	case PANEL_OFF:
 		sleep_disabled = false;
 		wake_up_all_idle_cpus();
-		goto out;
+		break;
+	default:
+		break;
 	};
 
-out:
 	return NOTIFY_OK;
 }
 static struct notifier_block panel_state_notifier = {
