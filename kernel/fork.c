@@ -130,6 +130,71 @@ int max_threads;		/* tunable limit on nr_threads */
 
 DEFINE_PER_CPU(unsigned long, process_counts) = 0;
 
+static DEFINE_PER_CPU(u64, fork_rate_ts);
+static DEFINE_PER_CPU(unsigned long, fork_rate);
+static DEFINE_PER_CPU(unsigned long, fork_failures);
+
+#define FORK_RATE_PERIOD_NS		(16 * NSEC_PER_MSEC)
+#define FORK_RATE_DECAY_SHIFT		4
+#define FORK_BURST_THRESHOLD		64
+#define FORK_THROTTLE_DELAY_US		100
+
+static unsigned int fork_rate_limit_enabled __read_mostly = 1;
+static unsigned int fork_max_rate __read_mostly = 256;
+
+static inline void update_fork_rate(int cpu, u64 now)
+{
+	u64 delta = now - per_cpu(fork_rate_ts, cpu);
+
+	if (delta < FORK_RATE_PERIOD_NS)
+		return;
+
+	per_cpu(fork_rate, cpu) =
+		(per_cpu(fork_rate, cpu) *
+		 ((1 << FORK_RATE_DECAY_SHIFT) - 1) + 1) >>
+		FORK_RATE_DECAY_SHIFT;
+	per_cpu(fork_rate_ts, cpu) = now;
+}
+
+static inline bool should_throttle_fork(int cpu)
+{
+	if (!fork_rate_limit_enabled)
+		return false;
+
+	return per_cpu(fork_rate, cpu) > fork_max_rate;
+}
+
+static inline void record_fork_attempt(int cpu, bool success)
+{
+	per_cpu(fork_rate, cpu)++;
+	if (!success)
+		per_cpu(fork_failures, cpu)++;
+}
+
+unsigned long fork_current_rate(void)
+{
+	int cpu;
+	unsigned long total = 0;
+
+	for_each_online_cpu(cpu)
+		total += per_cpu(fork_rate, cpu);
+
+	return total;
+}
+EXPORT_SYMBOL_GPL(fork_current_rate);
+
+unsigned long fork_failure_count(void)
+{
+	int cpu;
+	unsigned long total = 0;
+
+	for_each_online_cpu(cpu)
+		total += per_cpu(fork_failures, cpu);
+
+	return total;
+}
+EXPORT_SYMBOL_GPL(fork_failure_count);
+
 __cacheline_aligned DEFINE_RWLOCK(tasklist_lock);  /* outer */
 
 #ifdef CONFIG_PROVE_RCU
@@ -2350,6 +2415,16 @@ long _do_fork(unsigned long clone_flags,
 	struct task_struct *p;
 	int trace = 0;
 	long nr;
+	int cpu = raw_smp_processor_id();
+	u64 now = sched_clock();
+
+	update_fork_rate(cpu, now);
+
+	if (should_throttle_fork(cpu) && !(clone_flags & CLONE_UNTRACED)) {
+		if (!capable(CAP_SYS_ADMIN) && !task_is_zygote(current)) {
+			udelay(FORK_THROTTLE_DELAY_US);
+		}
+	}
 
 	/* Boost DDR bus to the max for 50 ms when userspace launches an app */
 	if (task_is_zygote(current)) {
@@ -2379,8 +2454,12 @@ long _do_fork(unsigned long clone_flags,
 			 child_tidptr, NULL, trace, tls, NUMA_NO_NODE);
 	add_latent_entropy();
 
-	if (IS_ERR(p))
+	if (IS_ERR(p)) {
+		record_fork_attempt(cpu, false);
 		return PTR_ERR(p);
+	}
+
+	record_fork_attempt(cpu, true);
 
 	/*
 	 * Do this prior waking up the new thread - the thread pointer
