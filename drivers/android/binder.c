@@ -74,6 +74,65 @@
 #include "binder_internal.h"
 #include "binder_trace.h"
 
+static DEFINE_PER_CPU(u64, binder_txn_count);
+static DEFINE_PER_CPU(u64, binder_txn_bytes);
+static DEFINE_PER_CPU(u64, binder_txn_latency_ns);
+static DEFINE_PER_CPU(u64, binder_sample_ts);
+static DEFINE_PER_CPU(unsigned long, binder_txn_rate);
+static DEFINE_PER_CPU(unsigned long, binder_avg_latency_us);
+
+#define BINDER_SAMPLE_PERIOD_NS		(10 * NSEC_PER_MSEC)
+#define BINDER_RATE_DECAY_SHIFT		3
+#define BINDER_HIGH_RATE		1000
+#define BINDER_HIGH_LATENCY_US		500
+
+static inline void track_binder_txn(u64 bytes, u64 latency_ns)
+{
+	int cpu = raw_smp_processor_id();
+	u64 now = ktime_get_ns();
+	u64 delta;
+
+	per_cpu(binder_txn_count, cpu)++;
+	per_cpu(binder_txn_bytes, cpu) += bytes;
+	per_cpu(binder_txn_latency_ns, cpu) += latency_ns;
+
+	delta = now - per_cpu(binder_sample_ts, cpu);
+	if (delta >= BINDER_SAMPLE_PERIOD_NS) {
+		u64 count = per_cpu(binder_txn_count, cpu);
+		u64 tot_lat = per_cpu(binder_txn_latency_ns, cpu);
+		unsigned long rate, avg_lat;
+
+		rate = div64_u64(count * NSEC_PER_SEC, delta);
+		per_cpu(binder_txn_rate, cpu) =
+			(per_cpu(binder_txn_rate, cpu) *
+			 ((1 << BINDER_RATE_DECAY_SHIFT) - 1) + rate) >>
+			BINDER_RATE_DECAY_SHIFT;
+
+		if (count > 0) {
+			avg_lat = div64_u64(tot_lat, count) / NSEC_PER_USEC;
+			per_cpu(binder_avg_latency_us, cpu) =
+				(per_cpu(binder_avg_latency_us, cpu) * 7 + avg_lat) >> 3;
+		}
+
+		per_cpu(binder_txn_count, cpu) = 0;
+		per_cpu(binder_txn_bytes, cpu) = 0;
+		per_cpu(binder_txn_latency_ns, cpu) = 0;
+		per_cpu(binder_sample_ts, cpu) = now;
+	}
+}
+
+unsigned long get_binder_txn_rate(void)
+{
+	return this_cpu_read(binder_txn_rate);
+}
+EXPORT_SYMBOL_GPL(get_binder_txn_rate);
+
+unsigned long get_binder_avg_latency_us(void)
+{
+	return this_cpu_read(binder_avg_latency_us);
+}
+EXPORT_SYMBOL_GPL(get_binder_avg_latency_us);
+
 static HLIST_HEAD(binder_deferred_list);
 static DEFINE_MUTEX(binder_deferred_lock);
 
@@ -3053,6 +3112,8 @@ static void binder_transaction(struct binder_proc *proc,
 	struct list_head pf_head;
 	const void __user *user_buffer = (const void __user *)
 				(uintptr_t)tr->data.ptr.buffer;
+	u64 start_ts = ktime_get_ns();
+
 	INIT_LIST_HEAD(&sgc_head);
 	INIT_LIST_HEAD(&pf_head);
 
@@ -3771,6 +3832,8 @@ static void binder_transaction(struct binder_proc *proc,
 	 */
 	smp_wmb();
 	WRITE_ONCE(e->debug_id_done, t_debug_id);
+
+	track_binder_txn(tr->data_size, ktime_get_ns() - start_ts);
 	return;
 
 err_dead_proc_or_thread:
