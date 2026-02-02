@@ -46,6 +46,93 @@
 
 #include <trace/events/tcp.h>
 
+static DEFINE_PER_CPU(u64, tcp_tx_bytes);
+static DEFINE_PER_CPU(u64, tcp_tx_segs);
+static DEFINE_PER_CPU(u64, tcp_retx_segs);
+static DEFINE_PER_CPU(u64, tcp_tx_ts);
+static DEFINE_PER_CPU(unsigned long, tcp_tx_rate);
+
+#define TCP_TX_SAMPLE_PERIOD_NS		(10 * NSEC_PER_MSEC)
+#define TCP_TX_RATE_DECAY_SHIFT		3
+#define TCP_RETX_RATIO_THRESHOLD	5
+#define TCP_HIGH_THROUGHPUT_MBPS	100
+
+static bool tcp_pacing_enabled __read_mostly = true;
+static unsigned int tcp_burst_limit __read_mostly = 16;
+
+static inline void track_tcp_tx_segment(unsigned int len, bool is_retx)
+{
+	int cpu = raw_smp_processor_id();
+	u64 now = ktime_get_ns();
+	u64 delta;
+
+	per_cpu(tcp_tx_bytes, cpu) += len;
+	per_cpu(tcp_tx_segs, cpu)++;
+
+	if (is_retx)
+		per_cpu(tcp_retx_segs, cpu)++;
+
+	delta = now - per_cpu(tcp_tx_ts, cpu);
+	if (delta >= TCP_TX_SAMPLE_PERIOD_NS) {
+		u64 bytes = per_cpu(tcp_tx_bytes, cpu);
+		unsigned long rate_mbps;
+
+		rate_mbps = div64_u64(bytes * 8 * NSEC_PER_SEC,
+				      delta * 1000000);
+
+		per_cpu(tcp_tx_rate, cpu) =
+			(per_cpu(tcp_tx_rate, cpu) *
+			 ((1 << TCP_TX_RATE_DECAY_SHIFT) - 1) + rate_mbps) >>
+			TCP_TX_RATE_DECAY_SHIFT;
+
+		per_cpu(tcp_tx_bytes, cpu) = 0;
+		per_cpu(tcp_tx_ts, cpu) = now;
+	}
+}
+
+static inline bool tcp_retx_ratio_high(void)
+{
+	int cpu = raw_smp_processor_id();
+	u64 total = per_cpu(tcp_tx_segs, cpu);
+	u64 retx = per_cpu(tcp_retx_segs, cpu);
+
+	if (total < 100)
+		return false;
+
+	return (retx * 100 / total) > TCP_RETX_RATIO_THRESHOLD;
+}
+
+static inline bool tcp_tx_is_bursty(void)
+{
+	return this_cpu_read(tcp_tx_rate) > TCP_HIGH_THROUGHPUT_MBPS;
+}
+
+static inline unsigned int get_adaptive_burst_limit(void)
+{
+	if (tcp_tx_is_bursty())
+		return tcp_burst_limit * 2;
+	return tcp_burst_limit;
+}
+
+unsigned long get_tcp_tx_rate_mbps(void)
+{
+	return this_cpu_read(tcp_tx_rate);
+}
+EXPORT_SYMBOL_GPL(get_tcp_tx_rate_mbps);
+
+unsigned long get_tcp_retx_ratio(void)
+{
+	int cpu = raw_smp_processor_id();
+	u64 total = per_cpu(tcp_tx_segs, cpu);
+	u64 retx = per_cpu(tcp_retx_segs, cpu);
+
+	if (total == 0)
+		return 0;
+
+	return retx * 100 / total;
+}
+EXPORT_SYMBOL_GPL(get_tcp_retx_ratio);
+
 /* Refresh clocks of a TCP socket,
  * ensuring monotically increasing values.
  */
