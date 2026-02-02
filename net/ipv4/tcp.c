@@ -292,6 +292,105 @@ EXPORT_SYMBOL(sysctl_tcp_mem);
 atomic_long_t tcp_memory_allocated;	/* Current allocated memory. */
 EXPORT_SYMBOL(tcp_memory_allocated);
 
+static DEFINE_PER_CPU(u64, tcp_tx_bytes);
+static DEFINE_PER_CPU(u64, tcp_rx_bytes);
+static DEFINE_PER_CPU(u64, tcp_retrans_count);
+static DEFINE_PER_CPU(u64, tcp_conn_count);
+
+#define TCP_PERF_PERIOD_NS		(32 * NSEC_PER_MSEC)
+#define TCP_FAST_ACK_THRESHOLD		8192
+#define TCP_WINDOW_BOOST_FACTOR		2
+
+static unsigned int tcp_perf_tracking __read_mostly = 1;
+static unsigned int tcp_adaptive_window __read_mostly = 1;
+static unsigned int tcp_fast_ack_mode __read_mostly = 1;
+
+static inline void tcp_track_tx(int cpu, unsigned int bytes)
+{
+	if (!tcp_perf_tracking)
+		return;
+	per_cpu(tcp_tx_bytes, cpu) += bytes;
+}
+
+static inline void tcp_track_rx(int cpu, unsigned int bytes)
+{
+	if (!tcp_perf_tracking)
+		return;
+	per_cpu(tcp_rx_bytes, cpu) += bytes;
+}
+
+static inline void tcp_track_retrans(int cpu)
+{
+	per_cpu(tcp_retrans_count, cpu)++;
+}
+
+static inline void tcp_track_connection(int cpu)
+{
+	per_cpu(tcp_conn_count, cpu)++;
+}
+
+static inline bool tcp_should_fast_ack(int cpu)
+{
+	if (!tcp_fast_ack_mode)
+		return false;
+	return per_cpu(tcp_rx_bytes, cpu) > TCP_FAST_ACK_THRESHOLD;
+}
+
+static inline unsigned int tcp_get_window_boost(void)
+{
+	if (!tcp_adaptive_window)
+		return 1;
+	return TCP_WINDOW_BOOST_FACTOR;
+}
+
+u64 tcp_total_tx_bytes(void)
+{
+	int cpu;
+	u64 total = 0;
+
+	for_each_online_cpu(cpu)
+		total += per_cpu(tcp_tx_bytes, cpu);
+
+	return total;
+}
+EXPORT_SYMBOL_GPL(tcp_total_tx_bytes);
+
+u64 tcp_total_rx_bytes(void)
+{
+	int cpu;
+	u64 total = 0;
+
+	for_each_online_cpu(cpu)
+		total += per_cpu(tcp_rx_bytes, cpu);
+
+	return total;
+}
+EXPORT_SYMBOL_GPL(tcp_total_rx_bytes);
+
+u64 tcp_total_retrans(void)
+{
+	int cpu;
+	u64 total = 0;
+
+	for_each_online_cpu(cpu)
+		total += per_cpu(tcp_retrans_count, cpu);
+
+	return total;
+}
+EXPORT_SYMBOL_GPL(tcp_total_retrans);
+
+u64 tcp_total_connections(void)
+{
+	int cpu;
+	u64 total = 0;
+
+	for_each_online_cpu(cpu)
+		total += per_cpu(tcp_conn_count, cpu);
+
+	return total;
+}
+EXPORT_SYMBOL_GPL(tcp_total_connections);
+
 #if IS_ENABLED(CONFIG_SMC)
 DEFINE_STATIC_KEY_FALSE(tcp_have_smc);
 EXPORT_SYMBOL(tcp_have_smc);
