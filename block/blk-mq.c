@@ -73,6 +73,78 @@ void blk_mq_benchmark_kick_queues(struct request_queue *q)
 }
 EXPORT_SYMBOL(blk_mq_benchmark_kick_queues);
 
+static DEFINE_PER_CPU(u64, io_dispatch_ts);
+static DEFINE_PER_CPU(unsigned long, io_dispatch_rate);
+static DEFINE_PER_CPU(unsigned long, io_dispatch_bytes);
+
+#define IO_DISPATCH_PERIOD_NS		(8 * NSEC_PER_MSEC)
+#define IO_RATE_DECAY_SHIFT		3
+#define IO_BURST_THRESHOLD		1024
+#define IO_COALESCE_MIN			4
+
+static unsigned int io_adaptive_dispatch __read_mostly = 1;
+static unsigned int io_dispatch_boost_factor __read_mostly = 2;
+
+static inline void update_io_dispatch_stats(int cpu, unsigned int nr_rqs,
+					    unsigned int bytes)
+{
+	u64 now = sched_clock();
+	u64 delta = now - per_cpu(io_dispatch_ts, cpu);
+
+	if (delta < IO_DISPATCH_PERIOD_NS)
+		return;
+
+	per_cpu(io_dispatch_rate, cpu) =
+		(per_cpu(io_dispatch_rate, cpu) *
+		 ((1 << IO_RATE_DECAY_SHIFT) - 1) + nr_rqs) >>
+		IO_RATE_DECAY_SHIFT;
+	per_cpu(io_dispatch_bytes, cpu) =
+		(per_cpu(io_dispatch_bytes, cpu) *
+		 ((1 << IO_RATE_DECAY_SHIFT) - 1) + bytes) >>
+		IO_RATE_DECAY_SHIFT;
+	per_cpu(io_dispatch_ts, cpu) = now;
+}
+
+static inline bool io_should_boost_dispatch(int cpu)
+{
+	if (!io_adaptive_dispatch)
+		return false;
+
+	return per_cpu(io_dispatch_rate, cpu) > IO_BURST_THRESHOLD ||
+	       blk_mq_benchmark_active();
+}
+
+static inline unsigned int io_get_dispatch_batch(int cpu, unsigned int batch)
+{
+	if (io_should_boost_dispatch(cpu))
+		return batch * io_dispatch_boost_factor;
+	return batch;
+}
+
+unsigned long blk_mq_io_dispatch_rate(void)
+{
+	int cpu;
+	unsigned long total = 0;
+
+	for_each_online_cpu(cpu)
+		total += per_cpu(io_dispatch_rate, cpu);
+
+	return total;
+}
+EXPORT_SYMBOL_GPL(blk_mq_io_dispatch_rate);
+
+unsigned long blk_mq_io_throughput(void)
+{
+	int cpu;
+	unsigned long total = 0;
+
+	for_each_online_cpu(cpu)
+		total += per_cpu(io_dispatch_bytes, cpu);
+
+	return total;
+}
+EXPORT_SYMBOL_GPL(blk_mq_io_throughput);
+
 static bool blk_mq_poll(struct request_queue *q, blk_qc_t cookie);
 static void blk_mq_poll_stats_start(struct request_queue *q);
 static void blk_mq_poll_stats_fn(struct blk_stat_callback *cb);
