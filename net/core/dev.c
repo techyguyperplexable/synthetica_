@@ -3462,10 +3462,12 @@ struct sk_buff *dev_hard_start_xmit(struct sk_buff *first, struct net_device *de
 	struct sk_buff *skb = first;
 	int rc = NETDEV_TX_OK;
 
-	while (skb) {
+	while (likely(skb)) {
 		struct sk_buff *next = skb->next;
 
 		skb->next = NULL;
+		if (likely(next))
+			prefetch(next);
 		rc = xmit_one(skb, dev, txq, next != NULL);
 		if (unlikely(!dev_xmit_complete(rc))) {
 			skb->next = next;
@@ -3473,7 +3475,7 @@ struct sk_buff *dev_hard_start_xmit(struct sk_buff *first, struct net_device *de
 		}
 
 		skb = next;
-		if (netif_tx_queue_stopped(txq) && skb) {
+		if (unlikely(netif_tx_queue_stopped(txq) && skb)) {
 			rc = NETDEV_TX_BUSY;
 			break;
 		}
@@ -5415,7 +5417,7 @@ static void netif_receive_skb_list_internal(struct list_head *head)
 	list_for_each_entry_safe(skb, next, head, list) {
 		net_timestamp_check(READ_ONCE(netdev_tstamp_prequeue), skb);
 		skb_list_del_init(skb);
-		if (!skb_defer_rx_timestamp(skb))
+		if (likely(!skb_defer_rx_timestamp(skb)))
 			list_add_tail(&skb->list, &sublist);
 	}
 	list_splice_init(&sublist, head);
@@ -5427,8 +5429,7 @@ static void netif_receive_skb_list_internal(struct list_head *head)
 			struct rps_dev_flow voidflow, *rflow = &voidflow;
 			int cpu = get_rps_cpu(skb->dev, skb, &rflow);
 
-			if (cpu >= 0) {
-				/* Will be handled, remove from list */
+			if (unlikely(cpu >= 0)) {
 				skb_list_del_init(skb);
 				enqueue_to_backlog(skb, cpu, &rflow->last_qtail);
 			}
