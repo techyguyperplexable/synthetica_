@@ -56,6 +56,22 @@ config DEVFREQ_GOV_POWERSAVE
 	  the DEVFREQ framework returns the lowest frequency available
 	  at any time.
 
+config DEVFREQ_GOV_ACACIA_PERF
+	tristate "Acacia Performance"
+	help
+	  Sets the frequency at the maximum available frequency.
+	  This governor always returns UINT_MAX as frequency so that
+	  the DEVFREQ framework returns the highest frequency available
+	  at any time.
+
+config DEVFREQ_GOV_ACACIA_BATT
+	tristate "Acacia Battery"
+	help
+	  Sets the frequency at the minimum available frequency.
+	  This governor always returns 0 as frequency so that
+	  the DEVFREQ framework returns the lowest frequency available
+	  at any time.
+
 config DEVFREQ_GOV_USERSPACE
 	tristate "Userspace"
 	help
