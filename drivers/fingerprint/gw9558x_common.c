@@ -338,9 +338,9 @@ static void gw9558_work_func_debug(struct work_struct *work)
 	if (gf_dev->reset_gpio)
 		rst_value = gpio_get_value(gf_dev->reset_gpio);
 
-	pr_info("ldo: %d, sleep: %d, tz: %d type: %s\n",
-		gf_dev->ldo_onoff, rst_value, gf_dev->tz_mode,
-		gf_dev->sensortype > 0 ? gf_dev->chipid : sensor_status[gf_dev->sensortype + 2]);
+//	pr_info("ldo: %d, sleep: %d, tz: %d type: %s\n",
+//		gf_dev->ldo_onoff, rst_value, gf_dev->tz_mode,
+//		gf_dev->sensortype > 0 ? gf_dev->chipid : sensor_status[gf_dev->sensortype + 2]);
 }
 
 int gw9558_pin_control(struct gf_device *gf_dev, bool pin_set)
