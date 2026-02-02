@@ -24,6 +24,75 @@ void sched_idle_set_state(struct cpuidle_state *idle_state, int index)
 
 static int __read_mostly cpu_idle_force_poll;
 
+static DEFINE_PER_CPU(u64, idle_entry_ts);
+static DEFINE_PER_CPU(u64, idle_total_ns);
+static DEFINE_PER_CPU(u64, idle_count);
+static DEFINE_PER_CPU(u64, idle_short_count);
+
+#define IDLE_SHORT_THRESHOLD_NS		(100 * NSEC_PER_USEC)
+#define IDLE_STATS_PERIOD_NS		(64 * NSEC_PER_MSEC)
+#define IDLE_FAST_EXIT_THRESHOLD	70
+
+static unsigned int idle_fast_exit_enabled __read_mostly = 1;
+static unsigned int idle_latency_bias __read_mostly = 1;
+
+static inline void idle_enter_stats(int cpu)
+{
+	per_cpu(idle_entry_ts, cpu) = sched_clock();
+}
+
+static inline void idle_exit_stats(int cpu)
+{
+	u64 now = sched_clock();
+	u64 duration = now - per_cpu(idle_entry_ts, cpu);
+
+	per_cpu(idle_total_ns, cpu) += duration;
+	per_cpu(idle_count, cpu)++;
+
+	if (duration < IDLE_SHORT_THRESHOLD_NS)
+		per_cpu(idle_short_count, cpu)++;
+}
+
+static inline bool idle_should_use_shallow_state(int cpu)
+{
+	u64 count, short_count;
+	unsigned int pct;
+
+	if (!idle_fast_exit_enabled)
+		return false;
+
+	count = per_cpu(idle_count, cpu);
+	if (count < 20)
+		return false;
+
+	short_count = per_cpu(idle_short_count, cpu);
+	pct = (short_count * 100) / count;
+
+	return pct > IDLE_FAST_EXIT_THRESHOLD;
+}
+
+u64 cpu_idle_time_total(int cpu)
+{
+	return per_cpu(idle_total_ns, cpu);
+}
+EXPORT_SYMBOL_GPL(cpu_idle_time_total);
+
+u64 cpu_idle_count(int cpu)
+{
+	return per_cpu(idle_count, cpu);
+}
+EXPORT_SYMBOL_GPL(cpu_idle_count);
+
+unsigned int cpu_idle_short_pct(int cpu)
+{
+	u64 count = per_cpu(idle_count, cpu);
+
+	if (count == 0)
+		return 0;
+	return (per_cpu(idle_short_count, cpu) * 100) / count;
+}
+EXPORT_SYMBOL_GPL(cpu_idle_short_pct);
+
 void cpu_idle_poll_ctrl(bool enable)
 {
 	if (enable) {
@@ -137,6 +206,9 @@ static void cpuidle_idle_call(void)
 	struct cpuidle_device *dev = cpuidle_get_device();
 	struct cpuidle_driver *drv = cpuidle_get_cpu_driver(dev);
 	int next_state, entered_state;
+	int cpu = smp_processor_id();
+
+	idle_enter_stats(cpu);
 
 	/*
 	 * Check if the idle task must be rescheduled. If it is the
@@ -144,6 +216,7 @@ static void cpuidle_idle_call(void)
 	 */
 	if (need_resched()) {
 		local_irq_enable();
+		idle_exit_stats(cpu);
 		return;
 	}
 
@@ -212,6 +285,8 @@ static void cpuidle_idle_call(void)
 
 exit_idle:
 	__current_set_polling();
+
+	idle_exit_stats(cpu);
 
 	/*
 	 * It is up to the idle functions to reenable local interrupts
