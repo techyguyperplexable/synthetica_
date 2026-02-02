@@ -84,6 +84,31 @@ EXPORT_SYMBOL(empty_name);
 const struct qstr slash_name = QSTR_INIT("/", 1);
 EXPORT_SYMBOL(slash_name);
 
+static DEFINE_PER_CPU(u64, dcache_lookup_count);
+static DEFINE_PER_CPU(u64, dcache_lookup_hit_count);
+
+static inline void track_dcache_lookup(bool hit)
+{
+	int cpu = raw_smp_processor_id();
+
+	per_cpu(dcache_lookup_count, cpu)++;
+	if (hit)
+		per_cpu(dcache_lookup_hit_count, cpu)++;
+}
+
+unsigned long get_dcache_hit_ratio(void)
+{
+	int cpu = raw_smp_processor_id();
+	u64 lookups = per_cpu(dcache_lookup_count, cpu);
+	u64 hits = per_cpu(dcache_lookup_hit_count, cpu);
+
+	if (lookups == 0)
+		return 100;
+
+	return (hits * 100) / lookups;
+}
+EXPORT_SYMBOL_GPL(get_dcache_hit_ratio);
+
 /*
  * This is the single most critical data structure when it comes
  * to the dcache: the hashtable for lookups. Somebody should try
@@ -2194,8 +2219,10 @@ seqretry:
 				continue;
 		}
 		*seqp = seq;
+		track_dcache_lookup(true);
 		return dentry;
 	}
+	track_dcache_lookup(false);
 	return NULL;
 }
 
@@ -2293,6 +2320,7 @@ next:
  	}
  	rcu_read_unlock();
 
+	track_dcache_lookup(found != NULL);
  	return found;
 }
 
