@@ -126,3 +126,5 @@ obj-$(CONFIG_SPARC_US3_CPUFREQ)		+= sparc-us3-cpufreq.o
 obj-$(CONFIG_UNICORE32)			+= unicore2-cpufreq.o
 
 subdir-ccflags-y += -Wformat
+obj-$(CONFIG_CPU_FREQ_GOV_ACACIA_PERF)		+= cpufreq_acacia_perf.o
+obj-$(CONFIG_CPU_FREQ_GOV_ACACIA_BATTERY)	+= cpufreq_acacia_battery.o
