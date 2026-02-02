@@ -180,6 +180,74 @@ unsigned long totalram_pages __read_mostly;
 unsigned long totalreserve_pages __read_mostly;
 unsigned long totalcma_pages __read_mostly;
 
+static DEFINE_PER_CPU(u64, zone_balance_ts);
+static DEFINE_PER_CPU(unsigned long, zone_alloc_rate);
+static DEFINE_PER_CPU(unsigned long, zone_fallback_count);
+
+#define ZONE_BALANCE_PERIOD_NS		(8 * NSEC_PER_MSEC)
+#define ZONE_RATE_DECAY_SHIFT		3
+#define ZONE_FALLBACK_THRESHOLD		32
+#define ZONE_REBALANCE_INTERVAL		64
+
+static unsigned int zone_balance_enabled __read_mostly = 1;
+static unsigned int zone_pressure_threshold __read_mostly = 70;
+
+static inline void update_zone_alloc_stats(int cpu, unsigned int order, u64 now)
+{
+	u64 delta = now - per_cpu(zone_balance_ts, cpu);
+
+	if (delta < ZONE_BALANCE_PERIOD_NS)
+		return;
+
+	per_cpu(zone_alloc_rate, cpu) =
+		(per_cpu(zone_alloc_rate, cpu) *
+		 ((1 << ZONE_RATE_DECAY_SHIFT) - 1) + (1 << order)) >>
+		ZONE_RATE_DECAY_SHIFT;
+	per_cpu(zone_balance_ts, cpu) = now;
+}
+
+static inline void record_zone_fallback(int cpu)
+{
+	per_cpu(zone_fallback_count, cpu)++;
+}
+
+static inline bool zone_needs_rebalance(int cpu)
+{
+	if (!zone_balance_enabled)
+		return false;
+
+	return per_cpu(zone_fallback_count, cpu) > ZONE_FALLBACK_THRESHOLD;
+}
+
+static inline void reset_zone_fallback_count(int cpu)
+{
+	per_cpu(zone_fallback_count, cpu) = 0;
+}
+
+unsigned long page_alloc_zone_pressure(void)
+{
+	int cpu;
+	unsigned long total = 0;
+
+	for_each_online_cpu(cpu)
+		total += per_cpu(zone_fallback_count, cpu);
+
+	return total;
+}
+EXPORT_SYMBOL_GPL(page_alloc_zone_pressure);
+
+unsigned long page_alloc_rate(void)
+{
+	int cpu;
+	unsigned long total = 0;
+
+	for_each_online_cpu(cpu)
+		total += per_cpu(zone_alloc_rate, cpu);
+
+	return total;
+}
+EXPORT_SYMBOL_GPL(page_alloc_rate);
+
 int percpu_pagelist_fraction;
 gfp_t gfp_allowed_mask __read_mostly = GFP_BOOT_MASK;
 #ifdef CONFIG_INIT_ON_ALLOC_DEFAULT_ON
@@ -3364,6 +3432,18 @@ struct page *rmqueue(struct zone *preferred_zone,
 {
 	unsigned long flags;
 	struct page *page;
+	int cpu = raw_smp_processor_id();
+	bool is_fallback = (zone != preferred_zone);
+
+	update_zone_alloc_stats(cpu, order, sched_clock());
+
+	if (is_fallback)
+		record_zone_fallback(cpu);
+
+	if (zone_needs_rebalance(cpu)) {
+		reset_zone_fallback_count(cpu);
+		wakeup_kswapd(preferred_zone, 0, order, zone_idx(preferred_zone));
+	}
 
 	if (likely(order == 0)) {
 		page = rmqueue_pcplist(preferred_zone, zone, order,
