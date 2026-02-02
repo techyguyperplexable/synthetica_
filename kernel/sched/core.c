@@ -47,6 +47,103 @@ unsigned int sysctl_sched_rt_period = 1000000;
 
 __read_mostly int scheduler_running;
 
+static DEFINE_PER_CPU(u64, adaptive_load_ts);
+static DEFINE_PER_CPU(unsigned long, adaptive_load_avg);
+static DEFINE_PER_CPU(unsigned int, migration_cooldown);
+
+#define ADAPTIVE_LOAD_PERIOD_NS		(4 * NSEC_PER_MSEC)
+#define ADAPTIVE_LOAD_DECAY_SHIFT	3
+#define MIGRATION_COOLDOWN_MAX		8
+#define LOAD_IMBALANCE_PCT		15
+
+static bool adaptive_migration_enabled __read_mostly = true;
+static unsigned int adaptive_load_threshold __read_mostly = 75;
+static unsigned int adaptive_idle_threshold __read_mostly = 20;
+
+static inline void update_adaptive_load(int cpu, u64 now)
+{
+	u64 delta = now - per_cpu(adaptive_load_ts, cpu);
+	unsigned long load;
+
+	if (delta < ADAPTIVE_LOAD_PERIOD_NS)
+		return;
+
+	load = cpu_rq(cpu)->nr_running * 100;
+	if (cpu_rq(cpu)->nr_running > 0)
+		load = (load * cpu_rq(cpu)->avg_idle) >> 20;
+
+	per_cpu(adaptive_load_avg, cpu) =
+		(per_cpu(adaptive_load_avg, cpu) *
+		 ((1 << ADAPTIVE_LOAD_DECAY_SHIFT) - 1) + load) >>
+		ADAPTIVE_LOAD_DECAY_SHIFT;
+	per_cpu(adaptive_load_ts, cpu) = now;
+}
+
+static inline bool cpu_is_overloaded(int cpu)
+{
+	return per_cpu(adaptive_load_avg, cpu) > adaptive_load_threshold;
+}
+
+static inline bool cpu_is_idle_enough(int cpu)
+{
+	return per_cpu(adaptive_load_avg, cpu) < adaptive_idle_threshold;
+}
+
+static int find_adaptive_target_cpu(struct task_struct *p, int src_cpu)
+{
+	int cpu, best_cpu = -1;
+	unsigned long min_load = ULONG_MAX;
+	struct cpumask *mask = p->cpus_ptr;
+
+	if (!adaptive_migration_enabled)
+		return -1;
+
+	if (per_cpu(migration_cooldown, src_cpu) > 0) {
+		per_cpu(migration_cooldown, src_cpu)--;
+		return -1;
+	}
+
+	if (!cpu_is_overloaded(src_cpu))
+		return -1;
+
+	for_each_cpu_and(cpu, mask, cpu_online_mask) {
+		if (cpu == src_cpu)
+			continue;
+
+		if (!cpu_is_idle_enough(cpu))
+			continue;
+
+		if (per_cpu(adaptive_load_avg, cpu) < min_load) {
+			min_load = per_cpu(adaptive_load_avg, cpu);
+			best_cpu = cpu;
+		}
+	}
+
+	if (best_cpu >= 0) {
+		unsigned long src_load = per_cpu(adaptive_load_avg, src_cpu);
+		unsigned long imbalance = (src_load - min_load) * 100 / src_load;
+
+		if (imbalance < LOAD_IMBALANCE_PCT) {
+			per_cpu(migration_cooldown, src_cpu) = MIGRATION_COOLDOWN_MAX;
+			return -1;
+		}
+	}
+
+	return best_cpu;
+}
+
+bool sched_adaptive_migration_enabled(void)
+{
+	return adaptive_migration_enabled;
+}
+EXPORT_SYMBOL_GPL(sched_adaptive_migration_enabled);
+
+void sched_set_adaptive_migration(bool enabled)
+{
+	adaptive_migration_enabled = enabled;
+}
+EXPORT_SYMBOL_GPL(sched_set_adaptive_migration);
+
 /*
  * part of the period that we allow rt tasks to run in us.
  * default: 0.95s
@@ -4704,10 +4801,35 @@ static inline void sched_submit_work(struct task_struct *tsk)
 asmlinkage __visible void __sched schedule(void)
 {
 	struct task_struct *tsk = current;
+	int cpu = raw_smp_processor_id();
+	u64 now = sched_clock();
+
+	update_adaptive_load(cpu, now);
 
 	sched_submit_work(tsk);
 	do {
+		int target;
+
 		preempt_disable();
+
+		if (tsk->state == TASK_RUNNING) {
+			target = find_adaptive_target_cpu(tsk, cpu);
+			if (target >= 0 && target != cpu) {
+				struct rq *rq = cpu_rq(cpu);
+				struct rq_flags rf;
+
+				rq_lock_irqsave(rq, &rf);
+				if (task_on_rq_queued(tsk) &&
+				    cpumask_test_cpu(target, tsk->cpus_ptr)) {
+					update_rq_clock(rq);
+					rq_unlock_irqrestore(rq, &rf);
+					set_cpus_allowed_ptr(tsk, cpumask_of(target));
+					rq_lock_irqsave(rq, &rf);
+				}
+				rq_unlock_irqrestore(rq, &rf);
+			}
+		}
+
 		__schedule(false);
 		sched_preempt_enable_no_resched();
 	} while (need_resched());
