@@ -82,6 +82,111 @@ static struct kmem_cache *skbuff_fclone_cache __ro_after_init;
 int sysctl_max_skb_frags __read_mostly = MAX_SKB_FRAGS;
 EXPORT_SYMBOL(sysctl_max_skb_frags);
 
+static DEFINE_PER_CPU(u64, skb_alloc_count);
+static DEFINE_PER_CPU(u64, skb_free_count);
+static DEFINE_PER_CPU(u64, skb_clone_count);
+static DEFINE_PER_CPU(u64, skb_alloc_fail_count);
+static DEFINE_PER_CPU(u64, skb_cache_hit_count);
+static DEFINE_PER_CPU(u64, skb_alloc_ts);
+static DEFINE_PER_CPU(unsigned long, skb_alloc_rate);
+
+#define SKB_ALLOC_SAMPLE_PERIOD_NS	(5 * NSEC_PER_MSEC)
+#define SKB_ALLOC_RATE_SHIFT		3
+#define SKB_HIGH_ALLOC_RATE		10000
+#define SKB_CACHE_HIT_TARGET_PCT	80
+
+static bool skb_fast_alloc_enabled __read_mostly = true;
+static unsigned int skb_prealloc_count __read_mostly = 64;
+
+static inline void track_skb_alloc(bool from_cache)
+{
+	int cpu = raw_smp_processor_id();
+	u64 now = ktime_get_ns();
+	u64 delta;
+
+	per_cpu(skb_alloc_count, cpu)++;
+	if (from_cache)
+		per_cpu(skb_cache_hit_count, cpu)++;
+
+	delta = now - per_cpu(skb_alloc_ts, cpu);
+	if (delta >= SKB_ALLOC_SAMPLE_PERIOD_NS) {
+		u64 allocs = per_cpu(skb_alloc_count, cpu);
+		unsigned long rate;
+
+		rate = div64_u64(allocs * NSEC_PER_SEC, delta);
+		per_cpu(skb_alloc_rate, cpu) =
+			(per_cpu(skb_alloc_rate, cpu) *
+			 ((1 << SKB_ALLOC_RATE_SHIFT) - 1) + rate) >>
+			SKB_ALLOC_RATE_SHIFT;
+
+		per_cpu(skb_alloc_ts, cpu) = now;
+	}
+}
+
+static inline void track_skb_free(void)
+{
+	this_cpu_inc(skb_free_count);
+}
+
+static inline void track_skb_clone(void)
+{
+	this_cpu_inc(skb_clone_count);
+}
+
+static inline void track_skb_alloc_failure(void)
+{
+	this_cpu_inc(skb_alloc_fail_count);
+}
+
+static inline bool skb_alloc_pressure_high(void)
+{
+	return this_cpu_read(skb_alloc_rate) > SKB_HIGH_ALLOC_RATE;
+}
+
+static inline bool skb_cache_hit_rate_low(void)
+{
+	int cpu = raw_smp_processor_id();
+	u64 allocs = per_cpu(skb_alloc_count, cpu);
+	u64 hits = per_cpu(skb_cache_hit_count, cpu);
+
+	if (allocs < 100)
+		return false;
+
+	return (hits * 100 / allocs) < SKB_CACHE_HIT_TARGET_PCT;
+}
+
+static inline unsigned int get_skb_prealloc_hint(void)
+{
+	if (skb_alloc_pressure_high())
+		return skb_prealloc_count * 2;
+	return skb_prealloc_count;
+}
+
+unsigned long get_skb_alloc_rate(void)
+{
+	return this_cpu_read(skb_alloc_rate);
+}
+EXPORT_SYMBOL_GPL(get_skb_alloc_rate);
+
+unsigned long get_skb_cache_hit_pct(void)
+{
+	int cpu = raw_smp_processor_id();
+	u64 allocs = per_cpu(skb_alloc_count, cpu);
+	u64 hits = per_cpu(skb_cache_hit_count, cpu);
+
+	if (allocs == 0)
+		return 100;
+
+	return hits * 100 / allocs;
+}
+EXPORT_SYMBOL_GPL(get_skb_cache_hit_pct);
+
+unsigned long get_skb_alloc_fail_count(void)
+{
+	return this_cpu_read(skb_alloc_fail_count);
+}
+EXPORT_SYMBOL_GPL(get_skb_alloc_fail_count);
+
 /**
  *	skb_panic - private function for out-of-line support
  *	@skb:	buffer
