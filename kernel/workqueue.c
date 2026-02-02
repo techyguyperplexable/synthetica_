@@ -57,6 +57,116 @@
 
 #include <linux/sec_debug.h>
 
+static DEFINE_PER_CPU(u64, wq_queued_count);
+static DEFINE_PER_CPU(u64, wq_executed_count);
+static DEFINE_PER_CPU(u64, wq_delayed_count);
+static DEFINE_PER_CPU(u64, wq_exec_time_ns);
+static DEFINE_PER_CPU(u64, wq_sample_ts);
+static DEFINE_PER_CPU(unsigned long, wq_exec_rate);
+static DEFINE_PER_CPU(unsigned long, wq_avg_latency_us);
+
+#define WQ_SAMPLE_PERIOD_NS		(20 * NSEC_PER_MSEC)
+#define WQ_RATE_DECAY_SHIFT		3
+#define WQ_HIGH_EXEC_RATE		1000
+#define WQ_HIGH_LATENCY_US		5000
+#define WQ_BACKLOG_THRESHOLD		32
+
+static bool wq_adaptive_workers_enabled __read_mostly = true;
+static unsigned int wq_latency_target_us __read_mostly = 1000;
+
+static inline void track_wq_queued(void)
+{
+	this_cpu_inc(wq_queued_count);
+}
+
+static inline void track_wq_executed(u64 exec_ns)
+{
+	int cpu = raw_smp_processor_id();
+	u64 now = ktime_get_ns();
+	u64 delta;
+
+	per_cpu(wq_executed_count, cpu)++;
+	per_cpu(wq_exec_time_ns, cpu) += exec_ns;
+
+	delta = now - per_cpu(wq_sample_ts, cpu);
+	if (delta >= WQ_SAMPLE_PERIOD_NS) {
+		u64 executed = per_cpu(wq_executed_count, cpu);
+		u64 exec_time = per_cpu(wq_exec_time_ns, cpu);
+		unsigned long rate, lat_us;
+
+		rate = div64_u64(executed * NSEC_PER_SEC, delta);
+		per_cpu(wq_exec_rate, cpu) =
+			(per_cpu(wq_exec_rate, cpu) *
+			 ((1 << WQ_RATE_DECAY_SHIFT) - 1) + rate) >>
+			WQ_RATE_DECAY_SHIFT;
+
+		if (executed > 0) {
+			lat_us = div64_u64(exec_time, executed) / NSEC_PER_USEC;
+			per_cpu(wq_avg_latency_us, cpu) =
+				(per_cpu(wq_avg_latency_us, cpu) * 7 + lat_us) >> 3;
+		}
+
+		per_cpu(wq_executed_count, cpu) = 0;
+		per_cpu(wq_exec_time_ns, cpu) = 0;
+		per_cpu(wq_sample_ts, cpu) = now;
+	}
+}
+
+static inline void track_wq_delayed(void)
+{
+	this_cpu_inc(wq_delayed_count);
+}
+
+static inline bool wq_exec_rate_high(void)
+{
+	return this_cpu_read(wq_exec_rate) > WQ_HIGH_EXEC_RATE;
+}
+
+static inline bool wq_latency_high(void)
+{
+	return this_cpu_read(wq_avg_latency_us) > WQ_HIGH_LATENCY_US;
+}
+
+static inline bool wq_needs_more_workers(void)
+{
+	int cpu = raw_smp_processor_id();
+	u64 queued = per_cpu(wq_queued_count, cpu);
+	u64 executed = per_cpu(wq_executed_count, cpu);
+
+	if (!wq_adaptive_workers_enabled)
+		return false;
+
+	if (queued > executed + WQ_BACKLOG_THRESHOLD)
+		return true;
+
+	return wq_latency_high();
+}
+
+unsigned long get_wq_exec_rate(void)
+{
+	return this_cpu_read(wq_exec_rate);
+}
+EXPORT_SYMBOL_GPL(get_wq_exec_rate);
+
+unsigned long get_wq_avg_latency_us(void)
+{
+	return this_cpu_read(wq_avg_latency_us);
+}
+EXPORT_SYMBOL_GPL(get_wq_avg_latency_us);
+
+unsigned long get_wq_backlog(void)
+{
+	int cpu = raw_smp_processor_id();
+	u64 queued = per_cpu(wq_queued_count, cpu);
+	u64 executed = per_cpu(wq_executed_count, cpu);
+
+	if (executed > queued)
+		return 0;
+
+	return queued - executed;
+}
+EXPORT_SYMBOL_GPL(get_wq_backlog);
+
 static struct pm_qos_request wq_pm_qos_req;
 static atomic_t wq_active_count = ATOMIC_INIT(0);
 #define WQ_QOS_LATENCY_US 150
