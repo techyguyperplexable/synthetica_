@@ -2816,17 +2816,13 @@ static int rmqueue_bulk(struct zone *zone, unsigned int order,
 			int migratetype, unsigned int alloc_flags)
 {
 	int i, alloced = 0;
+	const bool is_cma = is_migrate_cma(migratetype);
 
 	spin_lock(&zone->lock);
 	for (i = 0; i < count; ++i) {
 		struct page *page;
 
-		/*
-		 * If migrate type CMA is being requested only try to
-		 * satisfy the request with CMA pages to try and increase
-		 * CMA utlization.
-		 */
-		if (is_migrate_cma(migratetype))
+		if (unlikely(is_cma))
 			page = __rmqueue_cma(zone, order);
 		else
 			page = __rmqueue(zone, order, migratetype, alloc_flags);
@@ -2837,19 +2833,10 @@ static int rmqueue_bulk(struct zone *zone, unsigned int order,
 		if (unlikely(check_pcp_refill(page)))
 			continue;
 
-		/*
-		 * Split buddy pages returned by expand() are received here in
-		 * physical page order. The page is added to the tail of
-		 * caller's list. From the callers perspective, the linked list
-		 * is ordered by page number under some conditions. This is
-		 * useful for IO devices that can forward direction from the
-		 * head, thus also in the physical page order. This is useful
-		 * for IO devices that can merge IO requests if the physical
-		 * pages are ordered properly.
-		 */
+		prefetchw(&page->flags);
 		list_add_tail(&page->lru, list);
 		alloced++;
-		if (is_migrate_cma(get_pcppage_migratetype(page)))
+		if (unlikely(is_migrate_cma(get_pcppage_migratetype(page))))
 			__mod_zone_page_state(zone, NR_FREE_CMA_PAGES,
 					      -(1 << order));
 	}

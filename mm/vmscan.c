@@ -1215,17 +1215,23 @@ static unsigned long shrink_page_list(struct list_head *page_list,
 	while (!list_empty(page_list)) {
 		struct address_space *mapping;
 		struct page *page;
+		struct page *next_page;
 		int may_enter_fs;
 		enum page_references references = PAGEREF_RECLAIM;
 		bool dirty, writeback;
 
-		if (!(++loop_count & (SWAP_CLUSTER_MAX - 1)))
+		if (unlikely(!(++loop_count & (SWAP_CLUSTER_MAX - 1))))
 			cond_resched();
 
 		page = lru_to_page(page_list);
 		list_del(&page->lru);
 
-		if (!trylock_page(page))
+		if (!list_empty(page_list)) {
+			next_page = lru_to_page(page_list);
+			prefetchw(&next_page->flags);
+		}
+
+		if (unlikely(!trylock_page(page)))
 			goto keep;
 
 		VM_BUG_ON_PAGE(PageActive(page), page);
