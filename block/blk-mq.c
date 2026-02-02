@@ -1970,18 +1970,22 @@ void blk_mq_try_issue_list_directly(struct blk_mq_hw_ctx *hctx,
 		blk_status_t ret;
 		struct request *rq = list_first_entry(list, struct request,
 				queuelist);
+		struct request *next_rq;
 
 		list_del_init(&rq->queuelist);
-		ret = blk_mq_request_issue_directly(rq);
-		if (ret != BLK_STS_OK) {
-			if (ret == BLK_STS_RESOURCE ||
-					ret == BLK_STS_DEV_RESOURCE) {
-				blk_mq_request_bypass_insert(rq,
-							list_empty(list));
-				break;
-			}
-			blk_mq_end_request(rq, ret);
+		if (!list_empty(list)) {
+			next_rq = list_first_entry(list, struct request,
+					queuelist);
+			prefetch(next_rq);
 		}
+		ret = blk_mq_request_issue_directly(rq);
+		if (likely(ret == BLK_STS_OK))
+			continue;
+		if (ret == BLK_STS_RESOURCE || ret == BLK_STS_DEV_RESOURCE) {
+			blk_mq_request_bypass_insert(rq, list_empty(list));
+			break;
+		}
+		blk_mq_end_request(rq, ret);
 	}
 }
 
