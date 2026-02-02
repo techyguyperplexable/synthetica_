@@ -4,7 +4,8 @@
 
 static void cpufreq_gov_acacia_limits(struct cpufreq_policy *policy)
 {
-    /* Target the absolute Maximum frequency defined by hardware */
+    if (policy->cur == policy->max)
+        return;
     __cpufreq_driver_target(policy, policy->max, CPUFREQ_RELATION_H);
 }
 
