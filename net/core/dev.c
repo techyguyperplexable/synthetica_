@@ -163,6 +163,116 @@ struct list_head ptype_base[PTYPE_HASH_SIZE] __read_mostly;
 struct list_head ptype_all __read_mostly;	/* Taps */
 static struct list_head offload_base __read_mostly;
 
+static DEFINE_PER_CPU(u64, net_rx_packets);
+static DEFINE_PER_CPU(u64, net_rx_bytes);
+static DEFINE_PER_CPU(u64, net_tx_packets);
+static DEFINE_PER_CPU(u64, net_tx_bytes);
+static DEFINE_PER_CPU(u64, net_rx_dropped);
+static DEFINE_PER_CPU(u64, net_rx_ts);
+
+#define NET_STATS_PERIOD_NS		(16 * NSEC_PER_MSEC)
+#define NET_RATE_DECAY_SHIFT		3
+#define NET_BURST_THRESHOLD		4096
+#define NET_GRO_AGGRESSIVE_THRESHOLD	2048
+
+static unsigned int net_perf_tracking __read_mostly = 1;
+static unsigned int net_adaptive_coalesce __read_mostly = 1;
+static unsigned int net_gro_boost __read_mostly = 1;
+
+static inline void net_rx_track_packet(int cpu, unsigned int len)
+{
+	if (!net_perf_tracking)
+		return;
+
+	per_cpu(net_rx_packets, cpu)++;
+	per_cpu(net_rx_bytes, cpu) += len;
+}
+
+static inline void net_tx_track_packet(int cpu, unsigned int len)
+{
+	if (!net_perf_tracking)
+		return;
+
+	per_cpu(net_tx_packets, cpu)++;
+	per_cpu(net_tx_bytes, cpu) += len;
+}
+
+static inline void net_rx_track_drop(int cpu)
+{
+	per_cpu(net_rx_dropped, cpu)++;
+}
+
+static inline bool net_rx_is_burst(int cpu)
+{
+	u64 now = sched_clock();
+	u64 delta = now - per_cpu(net_rx_ts, cpu);
+	u64 pps;
+
+	if (delta < NET_STATS_PERIOD_NS)
+		return false;
+
+	pps = (per_cpu(net_rx_packets, cpu) * NSEC_PER_SEC) / delta;
+	per_cpu(net_rx_ts, cpu) = now;
+
+	return pps > NET_BURST_THRESHOLD;
+}
+
+static inline bool net_should_boost_gro(int cpu)
+{
+	if (!net_gro_boost)
+		return false;
+
+	return per_cpu(net_rx_packets, cpu) > NET_GRO_AGGRESSIVE_THRESHOLD;
+}
+
+u64 net_rx_packet_count(void)
+{
+	int cpu;
+	u64 total = 0;
+
+	for_each_online_cpu(cpu)
+		total += per_cpu(net_rx_packets, cpu);
+
+	return total;
+}
+EXPORT_SYMBOL_GPL(net_rx_packet_count);
+
+u64 net_rx_byte_count(void)
+{
+	int cpu;
+	u64 total = 0;
+
+	for_each_online_cpu(cpu)
+		total += per_cpu(net_rx_bytes, cpu);
+
+	return total;
+}
+EXPORT_SYMBOL_GPL(net_rx_byte_count);
+
+u64 net_tx_packet_count(void)
+{
+	int cpu;
+	u64 total = 0;
+
+	for_each_online_cpu(cpu)
+		total += per_cpu(net_tx_packets, cpu);
+
+	return total;
+}
+EXPORT_SYMBOL_GPL(net_tx_packet_count);
+
+u64 net_rx_drop_count(void)
+{
+	int cpu;
+	u64 total = 0;
+
+	for_each_online_cpu(cpu)
+		total += per_cpu(net_rx_dropped, cpu);
+
+	return total;
+}
+EXPORT_SYMBOL_GPL(net_rx_drop_count);
+
 static int netif_rx_internal(struct sk_buff *skb);
 static int call_netdevice_notifiers_info(unsigned long val,
 					 struct netdev_notifier_info *info);
@@ -4684,6 +4794,9 @@ EXPORT_SYMBOL_GPL(do_xdp_generic);
 static int netif_rx_internal(struct sk_buff *skb)
 {
 	int ret;
+	int cpu = raw_smp_processor_id();
+
+	net_rx_track_packet(cpu, skb->len);
 
 	net_timestamp_check(READ_ONCE(netdev_tstamp_prequeue), skb);
 
