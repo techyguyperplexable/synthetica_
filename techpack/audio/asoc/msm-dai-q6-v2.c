@@ -2236,6 +2236,15 @@ static int msm_dai_q6_prepare(struct snd_pcm_substream *substream,
 	uint16_t ttp_gen_enable = dai_data->ttp_config.ttp_gen_enable.enable;
 
 	if (!test_bit(STATUS_PORT_STARTED, dai_data->status_mask)) {
+		/*
+		 * If A2DP suspend state is set, we need to clear it
+		 * before starting the port to ensure A2DP works.
+		 */
+		if (dai->id == INT_BT_A2DP_RX) {
+			pr_debug("%s: force clearing A2DP suspend state\n", __func__);
+			dai_data->enc_config.a2dp_suspend = 0;
+		}
+
 		if (dai_data->enc_config.format != ENC_FMT_NONE) {
 			int bitwidth = 0;
 
