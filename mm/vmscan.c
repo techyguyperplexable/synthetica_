@@ -200,6 +200,100 @@ int direct_vm_swappiness = 40;
  */
 static unsigned int ui_memory_protect_ratio = 100;
 
+static DEFINE_PER_CPU(u64, reclaim_throttle_ts);
+static DEFINE_PER_CPU(unsigned long, reclaim_rate);
+static DEFINE_PER_CPU(unsigned long, reclaim_efficiency);
+
+#define RECLAIM_THROTTLE_WINDOW_NS	(10 * NSEC_PER_MSEC)
+#define RECLAIM_RATE_SHIFT		4
+#define RECLAIM_EFFICIENCY_MIN		50
+#define RECLAIM_BURST_THRESHOLD		256
+#define RECLAIM_BACKOFF_PAGES		16
+
+static unsigned int reclaim_adaptive_throttle __read_mostly = 1;
+static unsigned int reclaim_max_batch __read_mostly = 128;
+
+static inline void update_reclaim_stats(int cpu, unsigned long scanned,
+					unsigned long reclaimed, u64 now)
+{
+	unsigned long eff;
+
+	if (now - per_cpu(reclaim_throttle_ts, cpu) < RECLAIM_THROTTLE_WINDOW_NS)
+		return;
+
+	eff = scanned ? (reclaimed * 100) / scanned : 0;
+
+	per_cpu(reclaim_rate, cpu) =
+		(per_cpu(reclaim_rate, cpu) * ((1 << RECLAIM_RATE_SHIFT) - 1) +
+		 scanned) >> RECLAIM_RATE_SHIFT;
+	per_cpu(reclaim_efficiency, cpu) =
+		(per_cpu(reclaim_efficiency, cpu) * ((1 << RECLAIM_RATE_SHIFT) - 1) +
+		 eff) >> RECLAIM_RATE_SHIFT;
+	per_cpu(reclaim_throttle_ts, cpu) = now;
+}
+
+static inline bool reclaim_should_throttle(int cpu)
+{
+	if (!reclaim_adaptive_throttle)
+		return false;
+
+	if (per_cpu(reclaim_rate, cpu) > RECLAIM_BURST_THRESHOLD &&
+	    per_cpu(reclaim_efficiency, cpu) < RECLAIM_EFFICIENCY_MIN)
+		return true;
+
+	return false;
+}
+
+static inline unsigned long reclaim_get_adaptive_batch(struct scan_control *sc,
+						       unsigned long nr_to_scan)
+{
+	int cpu = raw_smp_processor_id();
+	unsigned long batch = nr_to_scan;
+
+	if (!reclaim_adaptive_throttle)
+		return min(batch, (unsigned long)reclaim_max_batch);
+
+	if (reclaim_should_throttle(cpu)) {
+		batch = batch >> 2;
+		if (batch < RECLAIM_BACKOFF_PAGES)
+			batch = RECLAIM_BACKOFF_PAGES;
+	}
+
+	if (sc->priority < DEF_PRIORITY - 3) {
+		batch = batch << 1;
+		if (batch > reclaim_max_batch << 1)
+			batch = reclaim_max_batch << 1;
+	}
+
+	return batch;
+}
+
+unsigned long vmscan_reclaim_rate(void)
+{
+	int cpu;
+	unsigned long total = 0;
+
+	for_each_online_cpu(cpu)
+		total += per_cpu(reclaim_rate, cpu);
+
+	return total;
+}
+EXPORT_SYMBOL_GPL(vmscan_reclaim_rate);
+
+unsigned long vmscan_reclaim_efficiency(void)
+{
+	int cpu, count = 0;
+	unsigned long total = 0;
+
+	for_each_online_cpu(cpu) {
+		total += per_cpu(reclaim_efficiency, cpu);
+		count++;
+	}
+
+	return count ? total / count : 0;
+}
+EXPORT_SYMBOL_GPL(vmscan_reclaim_efficiency);
+
 extern bool sched_benchmark_mode(void);
 extern bool sched_ui_boost_mode(void);
 
@@ -5936,6 +6030,11 @@ static bool shrink_node(pg_data_t *pgdat, struct scan_control *sc)
 
 	} while (should_continue_reclaim(pgdat, sc->nr_reclaimed - nr_reclaimed,
 					 sc->nr_scanned - nr_scanned, sc));
+
+	update_reclaim_stats(raw_smp_processor_id(),
+			     sc->nr_scanned - nr_scanned,
+			     sc->nr_reclaimed - nr_reclaimed,
+			     sched_clock());
 
 	/*
 	 * Kswapd gives up on balancing particular nodes after too
