@@ -152,6 +152,102 @@ static bool sock_boost_enabled = true;
 static unsigned int sock_boost_sndbuf_mult = 4;
 static unsigned int sock_boost_rcvbuf_mult = 4;
 
+static DEFINE_PER_CPU(u64, sock_alloc_count);
+static DEFINE_PER_CPU(u64, sock_free_count);
+static DEFINE_PER_CPU(u64, sock_tx_queue_full);
+static DEFINE_PER_CPU(u64, sock_mem_pressure_count);
+
+#define SOCK_STATS_PERIOD_NS		(16 * NSEC_PER_MSEC)
+#define SOCK_HIGH_TRAFFIC_THRESHOLD	1024
+#define SOCK_MEMORY_BOOST_FACTOR	2
+
+static unsigned int sock_perf_tracking __read_mostly = 1;
+static unsigned int sock_adaptive_memory __read_mostly = 1;
+
+static inline void sock_track_alloc(int cpu)
+{
+	if (sock_perf_tracking)
+		per_cpu(sock_alloc_count, cpu)++;
+}
+
+static inline void sock_track_free(int cpu)
+{
+	if (sock_perf_tracking)
+		per_cpu(sock_free_count, cpu)++;
+}
+
+static inline void sock_track_tx_full(int cpu)
+{
+	per_cpu(sock_tx_queue_full, cpu)++;
+}
+
+static inline void sock_track_mem_pressure(int cpu)
+{
+	per_cpu(sock_mem_pressure_count, cpu)++;
+}
+
+static inline bool sock_is_high_traffic(int cpu)
+{
+	return per_cpu(sock_alloc_count, cpu) > SOCK_HIGH_TRAFFIC_THRESHOLD;
+}
+
+static inline unsigned int sock_get_memory_boost(int cpu)
+{
+	if (!sock_adaptive_memory)
+		return 1;
+	if (sock_is_high_traffic(cpu))
+		return SOCK_MEMORY_BOOST_FACTOR;
+	return 1;
+}
+
+u64 sock_total_alloc_count(void)
+{
+	int cpu;
+	u64 total = 0;
+
+	for_each_online_cpu(cpu)
+		total += per_cpu(sock_alloc_count, cpu);
+
+	return total;
+}
+EXPORT_SYMBOL_GPL(sock_total_alloc_count);
+
+u64 sock_total_free_count(void)
+{
+	int cpu;
+	u64 total = 0;
+
+	for_each_online_cpu(cpu)
+		total += per_cpu(sock_free_count, cpu);
+
+	return total;
+}
+EXPORT_SYMBOL_GPL(sock_total_free_count);
+
+u64 sock_tx_queue_full_count(void)
+{
+	int cpu;
+	u64 total = 0;
+
+	for_each_online_cpu(cpu)
+		total += per_cpu(sock_tx_queue_full, cpu);
+
+	return total;
+}
+EXPORT_SYMBOL_GPL(sock_tx_queue_full_count);
+
+u64 sock_mem_pressure_total(void)
+{
+	int cpu;
+	u64 total = 0;
+
+	for_each_online_cpu(cpu)
+		total += per_cpu(sock_mem_pressure_count, cpu);
+
+	return total;
+}
+EXPORT_SYMBOL_GPL(sock_mem_pressure_total);
+
 static inline int sock_get_boosted_sndbuf(int sndbuf)
 {
 	if (sock_boost_enabled && sched_benchmark_mode())
