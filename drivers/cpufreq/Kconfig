@@ -117,11 +117,19 @@ config CPU_FREQ_DEFAULT_GOV_SCHEDUTIL
 
 endchoice
 
-config CPU_FREQ_GOV_ACACIA
-	tristate "Acacia High Performance"
-	select CPU_FREQ_GOV_COMMON
+config CPU_FREQ_GOV_ACACIA_PERF
+	tristate "Acacia Performance Governor"
 	help
-	  Sets the CPU frequency to the highest available for maximum performance.
+	  High performance governor that locks CPU frequency to maximum.
+	  Uses cached frequency checks and early-exit optimizations for
+	  minimal overhead. Ideal for gaming and benchmarks.
+
+config CPU_FREQ_GOV_ACACIA_BATTERY
+	tristate "Acacia Battery Governor"
+	help
+	  Battery-focused governor that locks CPU frequency to minimum.
+	  Uses cached frequency checks and early-exit optimizations for
+	  minimal overhead. Ideal for maximum battery life.
 
 config CPU_FREQ_GOV_PERFORMANCE
 	tristate "'performance' governor"
