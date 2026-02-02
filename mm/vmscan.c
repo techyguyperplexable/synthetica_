@@ -1210,8 +1210,7 @@ static unsigned long shrink_page_list(struct list_head *page_list,
 	unsigned nr_ref_keep = 0;
 	unsigned nr_unmap_fail = 0;
 	unsigned nr_lazyfree_fail = 0;
-
-	cond_resched();
+	unsigned int loop_count = 0;
 
 	while (!list_empty(page_list)) {
 		struct address_space *mapping;
@@ -1220,7 +1219,8 @@ static unsigned long shrink_page_list(struct list_head *page_list,
 		enum page_references references = PAGEREF_RECLAIM;
 		bool dirty, writeback;
 
-		cond_resched();
+		if (!(++loop_count & (SWAP_CLUSTER_MAX - 1)))
+			cond_resched();
 
 		page = lru_to_page(page_list);
 		list_del(&page->lru);
