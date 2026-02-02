@@ -83,6 +83,105 @@
 int sysctl_tcp_max_orphans __read_mostly = NR_FILE;
 int sysctl_tcp_init_cwnd __read_mostly = 44;
 
+static DEFINE_PER_CPU(u64, tcp_rtt_sum_ns);
+static DEFINE_PER_CPU(u64, tcp_rtt_count);
+static DEFINE_PER_CPU(u64, tcp_ack_rx_count);
+static DEFINE_PER_CPU(u64, tcp_dup_ack_count);
+static DEFINE_PER_CPU(u64, tcp_ooo_count);
+static DEFINE_PER_CPU(u64, tcp_input_ts);
+
+#define TCP_RTT_SAMPLE_PERIOD_NS	(8 * NSEC_PER_MSEC)
+#define TCP_RTT_SMOOTH_SHIFT		4
+#define TCP_DUP_ACK_THRESHOLD		3
+#define TCP_OOO_BURST_THRESHOLD		8
+
+static unsigned int tcp_rtt_target_us __read_mostly = 20000;
+static bool tcp_adaptive_ack_enabled __read_mostly = true;
+
+static inline void track_tcp_rtt_sample(u32 rtt_us)
+{
+	int cpu = raw_smp_processor_id();
+	u64 now = ktime_get_ns();
+
+	if (now - per_cpu(tcp_input_ts, cpu) < TCP_RTT_SAMPLE_PERIOD_NS)
+		return;
+
+	per_cpu(tcp_rtt_sum_ns, cpu) += rtt_us * NSEC_PER_USEC;
+	per_cpu(tcp_rtt_count, cpu)++;
+	per_cpu(tcp_input_ts, cpu) = now;
+}
+
+static inline void track_tcp_ack_event(bool is_dup)
+{
+	int cpu = raw_smp_processor_id();
+
+	per_cpu(tcp_ack_rx_count, cpu)++;
+	if (is_dup)
+		per_cpu(tcp_dup_ack_count, cpu)++;
+}
+
+static inline void track_tcp_ooo_segment(void)
+{
+	this_cpu_inc(tcp_ooo_count);
+}
+
+static inline bool tcp_path_is_congested(void)
+{
+	int cpu = raw_smp_processor_id();
+	u64 count = per_cpu(tcp_rtt_count, cpu);
+	u64 sum = per_cpu(tcp_rtt_sum_ns, cpu);
+	u64 avg_rtt_us;
+
+	if (count == 0)
+		return false;
+
+	avg_rtt_us = div64_u64(sum, count) / NSEC_PER_USEC;
+	return avg_rtt_us > tcp_rtt_target_us;
+}
+
+static inline bool tcp_excessive_dup_acks(void)
+{
+	int cpu = raw_smp_processor_id();
+	u64 total = per_cpu(tcp_ack_rx_count, cpu);
+	u64 dups = per_cpu(tcp_dup_ack_count, cpu);
+
+	if (total < 100)
+		return false;
+
+	return (dups * 100 / total) > TCP_DUP_ACK_THRESHOLD;
+}
+
+static inline bool tcp_ooo_burst_detected(void)
+{
+	return this_cpu_read(tcp_ooo_count) > TCP_OOO_BURST_THRESHOLD;
+}
+
+unsigned long get_tcp_avg_rtt_us(void)
+{
+	int cpu = raw_smp_processor_id();
+	u64 count = per_cpu(tcp_rtt_count, cpu);
+	u64 sum = per_cpu(tcp_rtt_sum_ns, cpu);
+
+	if (count == 0)
+		return 0;
+
+	return div64_u64(sum, count) / NSEC_PER_USEC;
+}
+EXPORT_SYMBOL_GPL(get_tcp_avg_rtt_us);
+
+unsigned long get_tcp_dup_ack_ratio(void)
+{
+	int cpu = raw_smp_processor_id();
+	u64 total = per_cpu(tcp_ack_rx_count, cpu);
+	u64 dups = per_cpu(tcp_dup_ack_count, cpu);
+
+	if (total == 0)
+		return 0;
+
+	return dups * 100 / total;
+}
+EXPORT_SYMBOL_GPL(get_tcp_dup_ack_ratio);
+
 #define FLAG_DATA		0x01 /* Incoming frame contained data.		*/
 #define FLAG_WIN_UPDATE		0x02 /* Incoming ACK was a window update.	*/
 #define FLAG_DATA_ACKED		0x04 /* This ACK acknowledged new data.		*/
