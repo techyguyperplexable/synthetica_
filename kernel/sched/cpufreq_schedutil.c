@@ -157,6 +157,101 @@ struct sugov_cpu {
 
 static DEFINE_PER_CPU(struct sugov_cpu, sugov_cpu);
 
+static DEFINE_PER_CPU(u64, freq_update_count);
+static DEFINE_PER_CPU(u64, freq_up_count);
+static DEFINE_PER_CPU(u64, freq_down_count);
+static DEFINE_PER_CPU(u64, freq_update_ts);
+static DEFINE_PER_CPU(unsigned long, freq_change_rate);
+static DEFINE_PER_CPU(unsigned long, avg_util_pct);
+
+#define FREQ_SAMPLE_PERIOD_NS		(16 * NSEC_PER_MSEC)
+#define FREQ_RATE_DECAY_SHIFT		3
+#define FREQ_CHURN_THRESHOLD		50
+#define UTIL_HIGH_WATERMARK		85
+#define UTIL_LOW_WATERMARK		30
+
+static bool freq_smoothing_enabled __read_mostly = true;
+static unsigned int freq_hysteresis_pct __read_mostly = 5;
+
+static inline void track_freq_update(bool is_increase)
+{
+	int cpu = raw_smp_processor_id();
+	u64 now = ktime_get_ns();
+	u64 delta;
+
+	per_cpu(freq_update_count, cpu)++;
+	if (is_increase)
+		per_cpu(freq_up_count, cpu)++;
+	else
+		per_cpu(freq_down_count, cpu)++;
+
+	delta = now - per_cpu(freq_update_ts, cpu);
+	if (delta >= FREQ_SAMPLE_PERIOD_NS) {
+		u64 updates = per_cpu(freq_update_count, cpu);
+		unsigned long rate;
+
+		rate = div64_u64(updates * NSEC_PER_SEC, delta);
+		per_cpu(freq_change_rate, cpu) =
+			(per_cpu(freq_change_rate, cpu) *
+			 ((1 << FREQ_RATE_DECAY_SHIFT) - 1) + rate) >>
+			FREQ_RATE_DECAY_SHIFT;
+
+		per_cpu(freq_update_count, cpu) = 0;
+		per_cpu(freq_update_ts, cpu) = now;
+	}
+}
+
+static inline void track_util_level(unsigned long util, unsigned long max)
+{
+	int cpu = raw_smp_processor_id();
+	unsigned long pct = (util * 100) / max;
+
+	per_cpu(avg_util_pct, cpu) =
+		(per_cpu(avg_util_pct, cpu) * 7 + pct) >> 3;
+}
+
+static inline bool freq_churn_detected(void)
+{
+	return this_cpu_read(freq_change_rate) > FREQ_CHURN_THRESHOLD;
+}
+
+static inline bool util_is_high(void)
+{
+	return this_cpu_read(avg_util_pct) > UTIL_HIGH_WATERMARK;
+}
+
+static inline bool util_is_low(void)
+{
+	return this_cpu_read(avg_util_pct) < UTIL_LOW_WATERMARK;
+}
+
+static inline bool should_apply_hysteresis(unsigned int cur, unsigned int next)
+{
+	unsigned int diff;
+
+	if (!freq_smoothing_enabled || !freq_churn_detected())
+		return false;
+
+	if (next > cur)
+		diff = next - cur;
+	else
+		diff = cur - next;
+
+	return (diff * 100 / cur) < freq_hysteresis_pct;
+}
+
+unsigned long get_freq_change_rate(void)
+{
+	return this_cpu_read(freq_change_rate);
+}
+EXPORT_SYMBOL_GPL(get_freq_change_rate);
+
+unsigned long get_avg_util_pct(void)
+{
+	return this_cpu_read(avg_util_pct);
+}
+EXPORT_SYMBOL_GPL(get_avg_util_pct);
+
 /************************ Governor internals ***********************/
 
 static bool sugov_should_rate_limit(struct sugov_policy *sg_policy, u64 time)
