@@ -19,6 +19,8 @@
 #include <uapi/linux/sched/types.h>
 #endif
 
+extern void sched_ui_boost_enable(unsigned int duration_ms);
+
 enum {
 	SCREEN_OFF,
 	INPUT_BOOST,
@@ -91,6 +93,12 @@ static void __cpu_input_boost_kick(struct boost_drv *b)
 {
 	if (test_bit(SCREEN_OFF, &b->state))
 		return;
+
+	/*
+	 * Also enable scheduler UI boost to defer compaction/migrations
+	 * during critical UI events (like app drawer opening).
+	 */
+	sched_ui_boost_enable(CONFIG_INPUT_BOOST_DURATION_MS);
 
 	set_bit(INPUT_BOOST, &b->state);
 	if (!mod_delayed_work(system_unbound_wq, &b->input_unboost,
