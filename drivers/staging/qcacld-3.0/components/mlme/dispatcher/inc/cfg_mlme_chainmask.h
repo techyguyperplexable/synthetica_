@@ -232,7 +232,7 @@
 			"tx_chain_mask_2g", \
 			0, \
 			3, \
-			0, \
+			3, \
 			CFG_VALUE_OR_DEFAULT, \
 			"2.4G Tx Chainmask")
 
@@ -265,7 +265,7 @@
 			"rx_chain_mask_2g", \
 			0, \
 			3, \
-			0, \
+			3, \
 			CFG_VALUE_OR_DEFAULT, \
 			"2.4G Rx Chainmask")
 
@@ -298,7 +298,7 @@
 			"tx_chain_mask_5g", \
 			0, \
 			3, \
-			0, \
+			3, \
 			CFG_VALUE_OR_DEFAULT, \
 			"5Ghz Tx Chainmask")
 
@@ -331,7 +331,7 @@
 			"rx_chain_mask_5g", \
 			0, \
 			3, \
-			0, \
+			3, \
 			CFG_VALUE_OR_DEFAULT, \
 			"5Ghz Tx Chainmask")
 

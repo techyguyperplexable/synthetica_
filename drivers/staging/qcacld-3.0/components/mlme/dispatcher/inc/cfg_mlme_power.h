@@ -75,7 +75,7 @@
 		"gPowerUsage", \
 		0, \
 		3, \
-		"Mod", \
+		"Max", \
 		"power usage")
 /*
  * <ini>
