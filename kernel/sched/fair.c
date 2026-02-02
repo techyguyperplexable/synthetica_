@@ -173,6 +173,63 @@ bool sched_benchmark_mode(void)
 }
 EXPORT_SYMBOL_GPL(sched_benchmark_mode);
 
+static DEFINE_PER_CPU(u64, wakeup_latency_sum);
+static DEFINE_PER_CPU(u64, wakeup_latency_count);
+static DEFINE_PER_CPU(u64, wakeup_latency_max);
+
+#define WAKEUP_LATENCY_FAST_NS		(500 * NSEC_PER_USEC)
+#define WAKEUP_LATENCY_SLOW_NS		(2 * NSEC_PER_MSEC)
+
+static unsigned int wakeup_latency_tracking __read_mostly = 1;
+
+static inline void track_wakeup_latency(int cpu, u64 latency_ns)
+{
+	if (!wakeup_latency_tracking)
+		return;
+
+	per_cpu(wakeup_latency_sum, cpu) += latency_ns;
+	per_cpu(wakeup_latency_count, cpu)++;
+
+	if (latency_ns > per_cpu(wakeup_latency_max, cpu))
+		per_cpu(wakeup_latency_max, cpu) = latency_ns;
+}
+
+static inline bool wakeup_is_latency_sensitive(int cpu)
+{
+	u64 count = per_cpu(wakeup_latency_count, cpu);
+	u64 avg;
+
+	if (count < 10)
+		return false;
+
+	avg = per_cpu(wakeup_latency_sum, cpu) / count;
+	return avg < WAKEUP_LATENCY_FAST_NS;
+}
+
+u64 sched_wakeup_latency_avg(int cpu)
+{
+	u64 count = per_cpu(wakeup_latency_count, cpu);
+
+	if (count == 0)
+		return 0;
+	return per_cpu(wakeup_latency_sum, cpu) / count;
+}
+EXPORT_SYMBOL_GPL(sched_wakeup_latency_avg);
+
+u64 sched_wakeup_latency_max(int cpu)
+{
+	return per_cpu(wakeup_latency_max, cpu);
+}
+EXPORT_SYMBOL_GPL(sched_wakeup_latency_max);
+
+void sched_reset_wakeup_latency_stats(int cpu)
+{
+	per_cpu(wakeup_latency_sum, cpu) = 0;
+	per_cpu(wakeup_latency_count, cpu) = 0;
+	per_cpu(wakeup_latency_max, cpu) = 0;
+}
+EXPORT_SYMBOL_GPL(sched_reset_wakeup_latency_stats);
+
 static inline unsigned long benchmark_scale_util(unsigned long util,
 						 struct task_struct *p)
 {
