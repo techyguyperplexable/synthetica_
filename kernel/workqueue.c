@@ -72,7 +72,7 @@ static DEFINE_PER_CPU(unsigned long, wq_avg_latency_us);
 #define WQ_BACKLOG_THRESHOLD		32
 
 static bool wq_adaptive_workers_enabled __read_mostly = true;
-static unsigned int __maybe_unused wq_latency_target_us __read_mostly = 1000;
+static unsigned int wq_latency_target_us __read_mostly = 1000;
 
 static inline void track_wq_queued(void)
 {
@@ -124,7 +124,7 @@ static inline bool wq_exec_rate_high(void)
 
 static inline bool wq_latency_high(void)
 {
-	return this_cpu_read(wq_avg_latency_us) > WQ_HIGH_LATENCY_US;
+	return this_cpu_read(wq_avg_latency_us) > wq_latency_target_us;
 }
 
 static inline bool wq_needs_more_workers(void)
