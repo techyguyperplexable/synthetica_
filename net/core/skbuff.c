@@ -95,7 +95,7 @@ static DEFINE_PER_CPU(unsigned long, skb_alloc_rate);
 #define SKB_HIGH_ALLOC_RATE		10000
 #define SKB_CACHE_HIT_TARGET_PCT	80
 
-static bool __maybe_unused skb_fast_alloc_enabled __read_mostly = true;
+static bool skb_fast_alloc_enabled __read_mostly = true;
 static unsigned int skb_prealloc_count __read_mostly = 64;
 
 static inline void track_skb_alloc(bool from_cache)
@@ -103,6 +103,9 @@ static inline void track_skb_alloc(bool from_cache)
 	int cpu = raw_smp_processor_id();
 	u64 now = ktime_get_ns();
 	u64 delta;
+
+	if (!skb_fast_alloc_enabled)
+		return;
 
 	per_cpu(skb_alloc_count, cpu)++;
 	if (from_cache)
