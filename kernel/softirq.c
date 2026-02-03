@@ -72,7 +72,7 @@ static DEFINE_PER_CPU(unsigned long, softirq_avg_time_us);
 #define SOFTIRQ_DEFER_THRESHOLD		8
 
 static bool softirq_adaptive_defer __read_mostly = true;
-static unsigned int __maybe_unused softirq_time_limit_us __read_mostly = 2000;
+static unsigned int softirq_time_limit_us __read_mostly = 2000;
 
 static inline void track_softirq_entry(void)
 {
@@ -123,7 +123,7 @@ static inline bool softirq_rate_high(void)
 
 static inline bool softirq_time_high(void)
 {
-	return this_cpu_read(softirq_avg_time_us) > SOFTIRQ_HIGH_TIME_US;
+	return this_cpu_read(softirq_avg_time_us) > softirq_time_limit_us;
 }
 
 static inline bool should_defer_to_ksoftirqd(int count)
