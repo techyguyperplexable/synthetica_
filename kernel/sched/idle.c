@@ -34,7 +34,7 @@ static DEFINE_PER_CPU(u64, idle_short_count);
 #define IDLE_FAST_EXIT_THRESHOLD	70
 
 static unsigned int idle_fast_exit_enabled __read_mostly = 1;
-static unsigned int __maybe_unused idle_latency_bias __read_mostly = 1;
+static unsigned int idle_latency_bias __read_mostly = 1;
 
 static inline void idle_enter_stats(int cpu)
 {
@@ -56,7 +56,7 @@ static inline void idle_exit_stats(int cpu)
 static inline bool idle_should_use_shallow_state(int cpu)
 {
 	u64 count, short_count;
-	unsigned int pct;
+	unsigned int pct, threshold;
 
 	if (!idle_fast_exit_enabled)
 		return false;
@@ -68,7 +68,8 @@ static inline bool idle_should_use_shallow_state(int cpu)
 	short_count = per_cpu(idle_short_count, cpu);
 	pct = (short_count * 100) / count;
 
-	return pct > IDLE_FAST_EXIT_THRESHOLD;
+	threshold = IDLE_FAST_EXIT_THRESHOLD - (idle_latency_bias * 10);
+	return pct > threshold;
 }
 
 u64 cpu_idle_time_total(int cpu)
