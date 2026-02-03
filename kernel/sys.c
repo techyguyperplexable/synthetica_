@@ -130,6 +130,30 @@
 # define GET_TAGGED_ADDR_CTRL()		(-EINVAL)
 #endif
 
+#define MAX_COMM_NAMES 10
+
+static const char *sar_game_comms[MAX_COMM_NAMES] = {
+    "UnityMain",
+    "com.activision.callofduty.shooter",
+    "com.pubg.imobile",
+    "com.studiowildcard.wardrumstudios.ark",
+    "com.studiowildcard.arkuse",
+    "com.epicgames.fortnite",
+    "com.levelinfinite.hotta.gp",
+    "com.kurogame.wutheringwaves.global",
+    // Add more process names as needed
+};
+
+static bool is_sar_game_process(const char *comm) {
+    int i;
+    for (i = 0; i < MAX_COMM_NAMES && sar_game_comms[i]; i++) {
+        if (!strcmp(comm, sar_game_comms[i])) {
+            return true;
+        }
+    }
+    return false;
+}
+
 /*
  * this is where the system-wide overflow UID and GID are defined, for
  * architectures that now have 32-bit UID/GID but didn't in the past
@@ -2488,6 +2512,8 @@ SYSCALL_DEFINE5(prctl, int, option, unsigned long, arg2, unsigned long, arg3,
 				      sizeof(me->comm) - 1) < 0)
 			return -EFAULT;
 		set_task_comm(me, comm);
+ 		/* Check if the process name indicates a sar game */
+ 		me->is_sar_game = is_sar_game_process(comm);		
 		proc_comm_connector(me);
 		break;
 	case PR_GET_NAME:
