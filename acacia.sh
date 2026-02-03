@@ -2,7 +2,7 @@
 
 # --- Configuration ---
 KERNEL_ROOT=$(pwd)
-KERNEL_NAME="backshot"
+KERNEL_NAME="eros"
 DATE=$(date +"%Y%m%d")
 LOG_FILE="$KERNEL_ROOT/build.log"
 LAST_SHA_FILE="$KERNEL_ROOT/.acacia_last_sha"
