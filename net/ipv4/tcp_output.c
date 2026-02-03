@@ -57,7 +57,7 @@ static DEFINE_PER_CPU(unsigned long, tcp_tx_rate);
 #define TCP_RETX_RATIO_THRESHOLD	5
 #define TCP_HIGH_THROUGHPUT_MBPS	100
 
-static bool tcp_pacing_enabled __read_mostly = true;
+static bool __maybe_unused tcp_pacing_enabled __read_mostly = true;
 static unsigned int tcp_burst_limit __read_mostly = 16;
 
 static inline void track_tcp_tx_segment(unsigned int len, bool is_retx)

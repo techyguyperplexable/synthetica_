@@ -176,7 +176,7 @@ static DEFINE_PER_CPU(u64, net_rx_ts);
 #define NET_GRO_AGGRESSIVE_THRESHOLD	2048
 
 static unsigned int net_perf_tracking __read_mostly = 1;
-static unsigned int net_adaptive_coalesce __read_mostly = 1;
+static unsigned int __maybe_unused net_adaptive_coalesce __read_mostly = 1;
 static unsigned int net_gro_boost __read_mostly = 1;
 
 static inline void net_rx_track_packet(int cpu, unsigned int len)

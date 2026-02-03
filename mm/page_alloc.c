@@ -190,7 +190,7 @@ static DEFINE_PER_CPU(unsigned long, zone_fallback_count);
 #define ZONE_REBALANCE_INTERVAL		64
 
 static unsigned int zone_balance_enabled __read_mostly = 1;
-static unsigned int zone_pressure_threshold __read_mostly = 70;
+static unsigned int __maybe_unused zone_pressure_threshold __read_mostly = 70;
 
 static inline void update_zone_alloc_stats(int cpu, unsigned int order, u64 now)
 {

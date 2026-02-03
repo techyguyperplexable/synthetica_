@@ -93,7 +93,7 @@ static int find_adaptive_target_cpu(struct task_struct *p, int src_cpu)
 {
 	int cpu, best_cpu = -1;
 	unsigned long min_load = ULONG_MAX;
-	struct cpumask *mask = p->cpus_ptr;
+	const struct cpumask *mask = p->cpus_ptr;
 
 	if (!adaptive_migration_enabled)
 		return -1;

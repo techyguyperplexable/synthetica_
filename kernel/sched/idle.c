@@ -34,7 +34,7 @@ static DEFINE_PER_CPU(u64, idle_short_count);
 #define IDLE_FAST_EXIT_THRESHOLD	70
 
 static unsigned int idle_fast_exit_enabled __read_mostly = 1;
-static unsigned int idle_latency_bias __read_mostly = 1;
+static unsigned int __maybe_unused idle_latency_bias __read_mostly = 1;
 
 static inline void idle_enter_stats(int cpu)
 {

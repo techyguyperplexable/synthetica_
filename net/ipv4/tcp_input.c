@@ -96,7 +96,7 @@ static DEFINE_PER_CPU(u64, tcp_input_ts);
 #define TCP_OOO_BURST_THRESHOLD		8
 
 static unsigned int tcp_rtt_target_us __read_mostly = 20000;
-static bool tcp_adaptive_ack_enabled __read_mostly = true;
+static bool __maybe_unused tcp_adaptive_ack_enabled __read_mostly = true;
 
 static inline void track_tcp_rtt_sample(u32 rtt_us)
 {

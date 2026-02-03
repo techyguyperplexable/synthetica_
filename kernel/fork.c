@@ -98,6 +98,7 @@
 #include <linux/simple_lmk.h>
 #include <linux/devfreq_boost.h>
 #include <linux/cpu_input_boost.h>
+#include <linux/delay.h>
 
 #include <asm/pgalloc.h>
 #include <linux/uaccess.h>
