@@ -172,7 +172,7 @@ tg_start_monitor
 # Config
 info "Generating config..."
 # Added EXTRA_CONFIG (oplus.config) to the make command
-make O="$OUT_DIR" $HOST_BUILD_ENV vendor/kona-not_defconfig vendor/samsung/kona-sec-not.config vendor/samsung/r8q.config vendor/samsung/nh.config vendor/samsung/lindroid.config $SELINUX_CONFIG $EXTRA_CONFIG 2>&1 | tee -a "$LOG_FILE"
+make O="$OUT_DIR" $HOST_BUILD_ENV vendor/kona-perf_defconfig $SELINUX_CONFIG $EXTRA_CONFIG 2>&1 | tee -a "$LOG_FILE"
 if [ ${PIPESTATUS[0]} -ne 0 ]; then tg_stop_monitor; tg_upload_log; exit 1; fi
 
 # Compilation
