@@ -761,7 +761,7 @@ static int _sec_debug_summary_init(void)
 	strlcpy(secdbg_apss->state, "Init", sizeof(secdbg_apss->state));
 	secdbg_apss->nr_cpus = num_present_cpus();
 	secdbg_apss->dump_sink_paddr = get_pa_dump_sink();
-	secdbg_apss->tz_core_dump = get_wdog_regsave_paddr();
+	secdbg_apss->tz_core_dump = (struct msm_dump_data **)get_wdog_regsave_paddr();
 
 	summary_init_debug_arch_desc();
 	summary_init_infomon();
