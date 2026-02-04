@@ -212,7 +212,7 @@ static inline unsigned int cpufreq_quick_get_max(unsigned int cpu)
 static inline void disable_cpufreq(void) { }
 #endif
 
-#if defined(CONFIG_CPU_FREQ_LIMIT_USERSPACE)
+#if defined(CONFIG_CPU_FREQ_LIMIT)
 enum {
 	DVFS_NO_ID			= 0,
 
