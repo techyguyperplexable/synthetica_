@@ -9,7 +9,7 @@ LAST_SHA_FILE="$KERNEL_ROOT/.acacia_last_sha"
 
 # Directories
 TOOLCHAIN_PARENT_DIR="$KERNEL_ROOT/toolchains"
-LLVM_DIR="/usr"
+LLVM_DIR="$TOOLCHAIN_PARENT_DIR/clang-r530567"
 OUT_DIR="$KERNEL_ROOT/out"
 ANYKERNEL_DIR="$KERNEL_ROOT/AnyKernel3" 
 
@@ -136,24 +136,21 @@ done
 
 # --- Toolchain Setup ---
 info "Setting up toolchain"
-LLVM_PATH="$LLVM_DIR/bin/"
-# API_URL="https://api.github.com/repos/Neutron-Toolchains/clang-build-catalogue/releases/latest"
-# TEMP_ARCHIVE_PATH="$TOOLCHAIN_PARENT_DIR/neutron-clang.tar.zst"
+mkdir -p "$TOOLCHAIN_PARENT_DIR"
+LLVM_PATH="$LLVM_DIR/bin"
+CLANG_URL="https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r530567.tar.gz"
 
-# if [ ! -d "$LLVM_DIR/bin" ]; then
-#     info "Downloading Neutron Clang..."
-#     mkdir -p "$LLVM_DIR"
-#     DOWNLOAD_URL=$(curl -sL "$API_URL" | jq -r '.assets[] | select(.name | startswith("neutron-clang-") and endswith(".tar.zst")) | .browser_download_url')
-#     
-#     if [ -z "$DOWNLOAD_URL" ] || [ "$DOWNLOAD_URL" == "null" ]; then
-#         echo "Error: Could not find download URL."
-#         exit 1
-#     fi
-# 
-#     curl -L "$DOWNLOAD_URL" -o "$TEMP_ARCHIVE_PATH" || exit 1
-#     tar -I 'zstd' -xvf "$TEMP_ARCHIVE_PATH" -C "$LLVM_DIR" --strip-components=1 || exit 1
-#     rm -f "$TEMP_ARCHIVE_PATH"
-# fi
+if [ ! -f "$LLVM_PATH/clang" ]; then
+    info "Downloading Google Clang 19 (r530567)..."
+    rm -rf "$LLVM_DIR"
+    mkdir -p "$LLVM_DIR"
+    
+    curl -L "$CLANG_URL" -o "$TOOLCHAIN_PARENT_DIR/clang.tar.gz" || { echo "Error: Download failed."; exit 1; }
+    
+    info "Extracting toolchain..."
+    tar -xf "$TOOLCHAIN_PARENT_DIR/clang.tar.gz" -C "$LLVM_DIR" || { echo "Error: Extraction failed."; exit 1; }
+    rm -f "$TOOLCHAIN_PARENT_DIR/clang.tar.gz"
+fi
 
 PATH="$LLVM_PATH:$PATH"
 HOST_BUILD_ENV="ARCH=arm64 CC=clang CROSS_COMPILE=aarch64-linux-gnu- LLVM=1 LLVM_IAS=1"
