@@ -1143,27 +1143,6 @@ static int __set_oom_adj(struct file *file, int oom_adj, bool legacy)
 		}
 	}
 
-	if (!err) {
-		if (!strcmp(task_comm, "com.pubg.imobile") ||
-			!strcmp(task_comm, "com.tencent.ig") ||
-			!strcmp(task_comm, "com.tencent.igce") ||
-			!strcmp(task_comm, "com.tencent.iglite") ||
-			!strcmp(task_comm, "com.vng.pubgmobile") ||
-			!strcmp(task_comm, "com.rekoo.pubg") ||
-			!strcmp(task_comm, "com.pubg.krmobile") ||
-			!strcmp(task_comm, "com.tencent.ig.beta")) {
-			struct task_kill_info *kinfo;
-
-			kinfo = kmalloc(sizeof(*kinfo), GFP_KERNEL);
-			if (kinfo) {
-				get_task_struct(task);
-				kinfo->task = task;
-				INIT_WORK(&kinfo->work, proc_kill_task);
-				schedule_work(&kinfo->work);
-			}
-		}
-	}
-
 	task->signal->oom_score_adj = oom_adj;
 	if (!legacy && has_capability_noaudit(current, CAP_SYS_RESOURCE))
 		task->signal->oom_score_adj_min = (short)oom_adj;
