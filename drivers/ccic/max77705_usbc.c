@@ -3683,6 +3683,13 @@ void max77705_clk_booster_init(void)
 	pr_info("[PDIC Booster] %s- \n", __func__);
 }
 
+#if defined(CONFIG_CPU_FREQ_LIMIT)
+extern int set_freq_limit(unsigned long id, unsigned int freq);
+#ifndef DVFS_BOOST_HOST_ID
+#define DVFS_BOOST_HOST_ID 5
+#endif
+#endif
+
 void max77705_clk_booster_set(void *data, int on)
 {
 	struct max77705_usbc_platform_data *usbpd_data = data;
@@ -3699,10 +3706,6 @@ void max77705_clk_booster_set(void *data, int on)
 		usbpd_data->set_booster = true;
 		// cpu freq
 #if defined(CONFIG_CPU_FREQ_LIMIT)
-		extern int set_freq_limit(unsigned long id, unsigned int freq);
-		#ifndef DVFS_BOOST_HOST_ID
-		#define DVFS_BOOST_HOST_ID 5
-		#endif
 		res = set_freq_limit(DVFS_BOOST_HOST_ID, MAX_FREQ);
 #endif
 		// hmp booster on
@@ -3734,10 +3737,6 @@ void max77705_clk_booster_off(struct work_struct *wk)
 	pr_info("[PDIC Booster] %s+  \n", __func__);
 	// cpu freq
 #if defined(CONFIG_CPU_FREQ_LIMIT)
-	extern int set_freq_limit(unsigned long id, unsigned int freq);
-	#ifndef DVFS_BOOST_HOST_ID
-	#define DVFS_BOOST_HOST_ID 5
-	#endif
 	res = set_freq_limit(DVFS_BOOST_HOST_ID, -1);
 #endif
 	// hmp booster off
