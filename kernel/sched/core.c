@@ -5729,7 +5729,7 @@ long sched_setaffinity(pid_t pid, const struct cpumask *in_mask)
 {
 	cpumask_var_t cpus_allowed, new_mask;
 	struct task_struct *p;
-	int retval = 0;
+	int retval;
 	int dest_cpu;
 	cpumask_t allowed_mask;
 
@@ -5744,13 +5744,6 @@ long sched_setaffinity(pid_t pid, const struct cpumask *in_mask)
 	/* Prevent p going away */
 	get_task_struct(p);
 	rcu_read_unlock();
-
-	/* Check if the process is a retarded game */
-	if (p->is_sar_game) {
-		// /* Log the process name */
-		// printk(KERN_INFO "Unity affinity request for retarded game process: %s (pid: %d)\n", p->comm, pid);
-		goto out_put_task;
-	}
 
 	if (p->flags & PF_NO_SETAFFINITY) {
 		retval = -EINVAL;
