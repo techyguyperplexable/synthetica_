@@ -10700,11 +10700,13 @@ reinit:
 		scsi_scan_host(hba->host);
 #if defined(CONFIG_UFSFEATURE)
 		ufsf_device_check(hba);
+#if defined(CONFIG_UFSHPB)
 		ufsf_hpb_init(&hba->ufsf);
 		if (hba->ufsf.hpb_dev_info.hpb_device) {
 			ufshcd_add_hpb_info_sysfs_node(hba);
 			get_monotonic_boottime(&(hba->SEC_hpb_info.timestamp_old));
 		}
+#endif
 #endif
 		pm_runtime_put_sync(hba->dev);
 	}
@@ -13060,7 +13062,7 @@ EXPORT_SYMBOL_GPL(ufshcd_dealloc_host);
 static int ufshcd_set_dma_mask(struct ufs_hba *hba)
 {
 	if (hba->capabilities & MASK_64_ADDRESSING_SUPPORT) {
-		if (!dma_set_mask_and_coherent(hba->dev, DMA_BIT_MASK(64)))
+		if (!dma_set_mask_and_coherent(hba->dev, ~0ULL))
 			return 0;
 	}
 	return dma_set_mask_and_coherent(hba->dev, DMA_BIT_MASK(32));
