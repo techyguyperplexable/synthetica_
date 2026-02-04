@@ -35,6 +35,7 @@
 #include <linux/workqueue.h>
 #include <linux/spinlock.h>
 #include <linux/kthread.h>
+#include <linux/cpufreq.h>
 #include <linux/sched.h>
 #include <linux/time.h>
 #include <linux/timer.h>
