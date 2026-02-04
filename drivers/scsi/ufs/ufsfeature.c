@@ -136,6 +136,7 @@ out:
 
 int ufsf_hpb_dt_check(struct ufs_hba *hba)
 {
+#if defined(CONFIG_UFSHPB)
         struct device_node *node = hba->dev->of_node;
         struct ufsf_feature *ufsf = &hba->ufsf;
         int dt_hpb_enable = 1;
@@ -186,6 +187,9 @@ int ufsf_hpb_dt_check(struct ufs_hba *hba)
 query_fail:
         pm_runtime_put_sync(hba->dev);
         return 0;
+#else
+	return 0;
+#endif
 }
 
 void ufsf_device_check(struct ufs_hba *hba)
@@ -228,6 +232,7 @@ out_free_mem:
 #endif
 	return;
 dt_hpb_disable:
+	;
 #if defined(CONFIG_UFSHPB)
         /* don't call init handler */
         ufsf->ufshpb_state = HPB_FAILED;
