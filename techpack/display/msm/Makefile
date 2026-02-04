@@ -126,7 +126,6 @@ msm_drm-$(CONFIG_DRM_MSM) += \
 	msm_smmu.o \
 	msm_prop.o \
 	msm_notifier.o\
-	kcal_drv.o
 
 obj-$(CONFIG_DRM_MSM)	+= msm_drm.o
 
