@@ -1065,26 +1065,16 @@ BPF_CALL_3(bpf_probe_read_str, void *, dst, u32, size,
 
 
 
-        /*
-
-         * The strncpy_from_unsafe() call will likely not fill the entire
-
-         * buffer, but that's okay in this circumstance as we're probing
-
-         * arbitrary memory anyway similar to bpf_probe_read() and might
-
-         * as well probe the stack. Thus, memory is explicitly cleared
-
-         * only in error case, so that improper users ignoring return
-
-         * code altogether don't copy garbage; otherwise length of string
-
-         * is returned that can be used for bpf_perf_event_output() et al.
-
-         */
-
-        ret = strncpy_from_unsafe(dst, unsafe_ptr, size);
-
+        	/*
+        	 * The strncpy_from_kernel_nofault() call will likely not fill the entire
+        	 * buffer, but that's okay in this circumstance as we're probing
+        	 * arbitrary memory anyway similar to bpf_probe_read() and might
+        	 * as well probe the stack. Thus, memory is explicitly cleared
+        	 * only in error case, so that improper users ignoring return
+        	 * code altogether don't copy garbage; otherwise length of string
+        	 * is returned that can be used for bpf_perf_event_output() et al.
+        	 */
+        	ret = strncpy_from_kernel_nofault(dst, unsafe_ptr, size);
         if (unlikely(ret < 0))
 
 out:
