@@ -60,8 +60,8 @@
  * - 1.1.0 - adds madvise, and support for submits with > 4 cmd buffers
  * - 1.2.0 - adds explicit fence support for submit ioctl
  * - 1.3.0 - adds GMEM_BASE + NR_RINGS params, SUBMITQUEUE_NEW +
- * SUBMITQUEUE_CLOSE ioctls, and MSM_INFO_IOVA flag for
- * MSM_GEM_INFO ioctl.
+ *           SUBMITQUEUE_CLOSE ioctls, and MSM_INFO_IOVA flag for
+ *           MSM_GEM_INFO ioctl.
  */
 #define MSM_VERSION_MAJOR	1
 #define MSM_VERSION_MINOR	3
@@ -432,7 +432,7 @@ static int msm_drm_uninit(struct device *dev)
 		unsigned long attrs = DMA_ATTR_NO_KERNEL_MAPPING;
 		drm_mm_takedown(&priv->vram.mm);
 		dma_free_attrs(dev, priv->vram.size, NULL,
-		       priv->vram.paddr, attrs);
+			       priv->vram.paddr, attrs);
 	}
 
 	component_unbind_all(dev, ddev);
@@ -491,16 +491,16 @@ static int msm_init_vram(struct drm_device *dev)
 	 * is all nicely abstracted behind the dma api, but we need
 	 * to know the entire size to allocate it all in one go. There
 	 * are two cases:
-	 * 1) device with no IOMMU, in which case we need exclusive
-	 * access to a VRAM carveout big enough for all gpu
-	 * buffers
-	 * 2) device with IOMMU, but where the bootloader puts up
-	 * a splash screen.  In this case, the VRAM carveout
-	 * need only be large enough for fbdev fb.  But we need
-	 * exclusive access to the buffer to avoid the kernel
-	 * using those pages for other purposes (which appears
-	 * as corruption on screen before we have a chance to
-	 * load and do initial modeset)
+	 *  1) device with no IOMMU, in which case we need exclusive
+	 *     access to a VRAM carveout big enough for all gpu
+	 *     buffers
+	 *  2) device with IOMMU, but where the bootloader puts up
+	 *     a splash screen.  In this case, the VRAM carveout
+	 *     need only be large enough for fbdev fb.  But we need
+	 *     exclusive access to the buffer to avoid the kernel
+	 *     using those pages for other purposes (which appears
+	 *     as corruption on screen before we have a chance to
+	 *     load and do initial modeset)
 	 */
 
 	node = of_parse_phandle(dev->dev->of_node, "memory-region", 0);
