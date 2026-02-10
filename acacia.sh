@@ -144,7 +144,7 @@ if [ ! -d "$TOOLCHAIN_DIR/bin" ]; then
     echo "Toolchain downloaded to $TOOLCHAIN_DIR"
 fi
 
-PATH="$TOOLCHAIN_DIR/bin:${PATH}"
+export PATH="$TOOLCHAIN_DIR/bin:${PATH}"
 KERNEL_LLVM_BIN="$TOOLCHAIN_DIR/bin/clang"
 
 export CC="ccache clang"
