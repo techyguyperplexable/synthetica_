@@ -3,8 +3,8 @@ set -e
 
 export LC_ALL=C
 export KBUILD_BUILD_TIMESTAMP=$(date -u "+%a %b %d %H:%M:%S UTC %Y")
-export KBUILD_BUILD_USER="Z3phery"
-export KBUILD_BUILD_HOST="Archlinux"
+export KBUILD_BUILD_USER="${KBUILD_BUILD_USER:-$(whoami)}"
+export KBUILD_BUILD_HOST="${KBUILD_BUILD_HOST:-$(hostname)}"
 
 if [ -f .gitmodules ]; then
   UNINITIALIZED_SUBMODULES=$(git submodule status | grep '^-' || true)
@@ -115,7 +115,7 @@ KERNEL_ARCH=arm64
 export PROJECT_NAME="${MODEL}"
 [ -z "${PLATFORM_VERSION}" ] && export PLATFORM_VERSION=11
 
-KERNEL_DEFCONFIG="vendor/${CHIPSET_NAME}-queenX_defconfig"
+KERNEL_DEFCONFIG="vendor/${CHIPSET_NAME}-perf_defconfig"
 COMMON_DEFCONFIG="vendor/samsung/kona-sec-common.config"
 
 if [ -n "$REGION" ]; then
@@ -128,13 +128,24 @@ if [ "$PERMISSIVE" = true ]; then
     SLNX_DEFCONFIG="vendor/permissive.config"
 fi
 
-if [ ! -d "/home/ignacio/toolchains/clang-r536225/bin" ]; then
-    echo "Error: AOSP toolchain directories not found. Exiting."
-    exit 1
+# Auto-detect or download toolchain
+TOOLCHAIN_DIR="${TOOLCHAIN_DIR:-$BUILD_ROOT_DIR/toolchains/clang-r536225}"
+
+if [ ! -d "$TOOLCHAIN_DIR/bin" ]; then
+    echo "Toolchain not found at $TOOLCHAIN_DIR"
+    echo "Downloading AOSP Clang r536225..."
+    mkdir -p "$(dirname "$TOOLCHAIN_DIR")"
+    curl -LSs https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r536225.tar.gz \
+        | tar xz -C "$(dirname "$TOOLCHAIN_DIR")" 2>/dev/null || {
+        echo "Auto-download failed. Please set TOOLCHAIN_DIR to your clang toolchain path."
+        echo "  e.g.: export TOOLCHAIN_DIR=/path/to/clang-r536225"
+        exit 1
+    }
+    echo "Toolchain downloaded to $TOOLCHAIN_DIR"
 fi
 
-PATH="/home/ignacio/toolchains/clang-r536225/bin:${PATH}"
-KERNEL_LLVM_BIN="/home/ignacio/toolchains/clang-r536225/bin/clang"
+PATH="$TOOLCHAIN_DIR/bin:${PATH}"
+KERNEL_LLVM_BIN="$TOOLCHAIN_DIR/bin/clang"
 
 export CC="ccache clang"
 export LLVM=1
@@ -213,7 +224,7 @@ FUNC_MAKE_ZIP() {
     build_date=$(date +"%Y%m%d")
     gitsha=$(git rev-parse --short HEAD)
     
-    ZIP_NAME="queenX-perf-UI-${MODEL}-${gitsha}-${build_date}.zip"
+    ZIP_NAME="Acacia-${MODEL}-${gitsha}-${build_date}.zip"
 
     cd "$ANYKERNEL_DIR" || exit 1
     
