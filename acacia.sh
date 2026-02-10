@@ -115,7 +115,7 @@ KERNEL_ARCH=arm64
 export PROJECT_NAME="${MODEL}"
 [ -z "${PLATFORM_VERSION}" ] && export PLATFORM_VERSION=11
 
-KERNEL_DEFCONFIG="vendor/${CHIPSET_NAME}-perf_defconfig"
+KERNEL_DEFCONFIG="vendor/${CHIPSET_NAME}-queenX-perf_defconfig"
 COMMON_DEFCONFIG="vendor/samsung/kona-sec-common.config"
 
 if [ -n "$REGION" ]; then
@@ -148,6 +148,9 @@ PATH="$TOOLCHAIN_DIR/bin:${PATH}"
 KERNEL_LLVM_BIN="$TOOLCHAIN_DIR/bin/clang"
 
 export CC="ccache clang"
+export CROSS_COMPILE=aarch64-linux-gnu-
+export CROSS_COMPILE_COMPAT=arm-linux-gnueabi-
+export CLANG_TRIPLE=aarch64-linux-gnu-
 export LLVM=1
 export LLVM_IAS=1
 export DTC_OVERLAY_TEST_EXT="$KERNEL_DIR/tools/ufdt_apply_overlay"
