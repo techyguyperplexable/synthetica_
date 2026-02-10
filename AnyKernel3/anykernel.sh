@@ -4,7 +4,7 @@
 ## AnyKernel setup
 # begin properties
 properties() { '
-kernel.string=queenX for Aosp 
+kernel.string=queenX-perf (Based on Ata-kaner LineageOS 23.2 source)
 do.devicecheck=1
 do.modules=0
 do.systemless=1
@@ -77,7 +77,7 @@ dd if=$home/dtbo.img of=/dev/block/platform/soc/1d84000.ufshc/by-name/dtbo
 
 # Image install
 ui_print " "
-ui_print " - Installing queenX Kernel... "
+ui_print " - Instlalling queenX Kernel... "
 
 flash_boot;
 ## end boot install
